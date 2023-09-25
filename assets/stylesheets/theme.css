@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+body{
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    color:#241e22;
+}
+.font-medium {
+    font-size: 14px;
+}
+.font-small {
+    font-size: 12.5px;
+}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #241e22;
+}
+.theme-box-shadow {
+    box-shadow: 0 0rem 0.8rem rgba(52, 53, 52, 0.15);
+}
+.theme-border-radius {
+    border-radius: 0.5rem;
+}
+.theme-text-accent-two {
+    color: #9f9f9f;
+}
+.theme-bg-secondary {
+    background-color: #002d5b;
+}
+html, body, ul, ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+a {
+    text-decoration: none;
+    color:#241e22;
+    cursor: pointer;
+}
+.btn-black-border {
+    border: 1px solid #241e22;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #241e22;
+}
+
+.btn-black-border:hover {
+    border: 1px solid #c60013;
+    color: #c60013;
+}
+.btn-outline-white{
+    border: 1px solid #fff;
+    color: #fff;
+}
+.btn-outline-white:hover{
+    border: 1px solid #c60013;
+    color: #fff;
+}
+a:hover{color: #c60013;}
+.btn-check:checked+.btn, .btn.active, .btn.show, .btn:first-child:active, :not(.btn-check)+.btn:active {
+    color: #fff;
+    background-color: #b20b1c;
+    border-color: #b20b1c;
+}
+.btn-primary {
+    background: #c60013;
+    border: 1px solid #c60013;
+    color: #fff !important;
+    transition: 0.5s all;
+}
+.btn-danger {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #c60013;
+    --bs-btn-border-color: #c60013;
+}
+.btn-primary:hover, .btn-danger:hover, .btn-outline-danger:hover, .btn-outline-white:hover {
+    background: linear-gradient(150deg, #3f3d3e 0%, #c60013 100%);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+    transition: 0.5s all;
+}
+.btn{
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+.alert{
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.alert-danger {
+    --bs-alert-color: #ec1b1e;
+    --bs-alert-border-color: transparent;
+    --bs-alert-link-color: #ec1b1e;
+}
+.alert-success{
+    background: #b1ffad63;
+    color: #0c7f06;
+    --bs-alert-border-color: transparent;
+}
+.success-div {
+padding: 5px 10px;
+    background: #b1ffad63;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    color: #0c7f06;
+}
+.alert i {
+    margin-right: 5px;
+}
+
+.table-primary {
+    --bs-table-color: #fff;
+    --bs-table-bg: #010179;
+    --bs-table-border-color: #010179;
+}
+
+/* custom checkbox */
+
+.form-check-inline {
+    display: inline-block;
+    margin-right: 1rem;
+}
+.check-wrap {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    color: #343534;
+}
+.check-wrap input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+.check-wrap .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    border-radius: 4px;
+    border: 1px solid #9f9f9f;
+}
+.check-wrap .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 0.2rem;
+    top: 0rem;
+    width: 0.5rem;
+    height: 0.8rem;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+.check-wrap input:checked ~ .checkmark:after {
+    display: block;
+}
+.check-wrap input:checked ~ .checkmark {
+    background-color: #c60013;
+    border: 1px solid #c60013;
+}
+
+  .form-floating>.form-control~label, .form-floating>label {
+    padding: calc(0.5rem * 0.75) calc(0.5rem * .5);
+    margin: calc(0.5rem * 0.75 + 3px) calc(0.5rem * .5);
+    white-space: nowrap;
+    transform: translate(0, 0);
+    transform-origin: 0 0;
+    background: #fff;
+    transition: transform 120ms ease-in;
+    font-weight: 600;
+    line-height: 1.2;
+    height: auto;
+}
+
+.form-floating>.form-control, .form-floating>.form-control-plaintext {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: calc(0.5rem * 1.5) 0.5rem !important;
+    border-radius: 4px;
+    border: 1px solid #999;
+}
+
+.form-floating>.form-control-plaintext~label, .form-floating>.form-control:focus~label, .form-floating>.form-control:not(:placeholder-shown)~label, .form-floating>.form-select~label {
+    transform: translate(0.25rem, -65%) scale(0.9);
+    color: #c60013;
+}
+
+.form-control:focus {
+    box-shadow: none;
+}
+.form-floating>.form-control, .form-floating>.form-control-plaintext, .form-floating>.form-select {
+    height: auto;
+    min-height: 48px;
+    border: 1px solid #999;
+}
+.form-floating>.form-select {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
+.form-select:focus {
+    box-shadow: none;
+}
+  .btn-gradient {
+    color: #ffffff;
+    background: -moz-linear-gradient(150deg, #c60013 0%, #3f3d3e 50%, #c60013 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%, #c60013), color-stop(50%, #3f3d3e), color-stop(100%, #c60013));
+    background: -webkit-linear-gradient(150deg, #c60013 0%, #3f3d3e 50%, #c60013 100%);
+    background: -o-linear-gradient(150deg, #c60013 0%, #3f3d3e 50%, #c60013 100%);
+    background: -ms-linear-gradient(150deg, #c60013 0%, #3f3d3e 50%, #c60013 100%);
+    background: linear-gradient(150deg, #c60013 0%, #3f3d3e 50%, #c60013 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='$color-one', endColorstr='$color-two',gradientType=1 );
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    background-size: 260% 100%;
+    background-position: right bottom;
+    border: 0;
+    line-height: 1.92;
+}
+.btn-gradient.active, .btn-gradient:active, .btn-gradient:focus, .btn-gradient:hover {
+    color: #ffffff;
+    background-position: left bottom;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
