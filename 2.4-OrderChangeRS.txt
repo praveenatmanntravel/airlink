@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:awsse="http://xml.amadeus.com/2010/06/Session_v3" xmlns:wsa="http://www.w3.org/2005/08/addressing">
+    <soap:Header>
+        <wsa:To>http://www.w3.org/2005/08/addressing/anonymous</wsa:To>
+        <wsa:From>
+            <wsa:Address>https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ</wsa:Address>
+        </wsa:From>
+        <wsa:Action>http://webservices.amadeus.com/NDC_OrderChange_18.1</wsa:Action>
+        <wsa:MessageID>urn:uuid:b6fefb92-4bba-7a74-b18c-cf02886f88ea</wsa:MessageID>
+        <wsa:RelatesTo RelationshipType="http://www.w3.org/2005/08/addressing/reply">b3dc5311-f71c-479a-a90f-da6276016f3f</wsa:RelatesTo>
+        <awsse:Session TransactionStatusCode="End">
+            <awsse:SessionId>01HVOH5AQF</awsse:SessionId>
+            <awsse:SequenceNumber>1</awsse:SequenceNumber>
+            <awsse:SecurityToken>3E1O89IJ8IRQQ16HP77XTYG6P5</awsse:SecurityToken>
+        </awsse:Session>
+    </soap:Header>
+    <soap:Body>
+        <ns3:OrderViewRS xmlns="http://www.iata.org/IATA/2015/00/BP/2018.1/SecurePayment_v1.0" xmlns:ns2="http://www.iata.org/IATA/2015/00/2018.1/OrderChangeRQ" xmlns:ns3="http://www.iata.org/IATA/2015/00/2018.1/OrderViewRS">
+            <ns3:Errors>
+                <ns3:Error>
+                    <ns3:Code>466</ns3:Code>
+                    <ns3:DescText>UNABLE TO CREATE PAYMENT SOLUTION - REFER TO DISPATCH REPORT</ns3:DescText>
+                    <ns3:LanguageCode>EN</ns3:LanguageCode>
+                    <ns3:TypeCode>E</ns3:TypeCode>
+                </ns3:Error>
+            </ns3:Errors>
+        </ns3:OrderViewRS>
+    </soap:Body>
+</soap:Envelope>

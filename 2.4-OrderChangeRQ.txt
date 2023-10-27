@@ -1,0 +1,37 @@
+<Request>
+                <ChangeOrder>
+                    <UpdateOrderItem>
+                        <AcceptOffer>
+                            <SelectedOffer>
+                                <OfferID>SP1P-4501647471142306834-1</OfferID>
+                                <OwnerCode/>
+                                <ShoppingResponseRefID>SP1P-4501647471142306834</ShoppingResponseRefID>
+                                <SelectedOfferItem>
+                                    <OfferItemRefID>SP1P-4501647471142306834-1-1</OfferItemRefID>
+                                    <PaxRefID>PAX2</PaxRefID>
+
+                                    <SelectedALaCarteOfferItem>
+                                        <Qty>10</Qty>
+                                    </SelectedALaCarteOfferItem>
+                                    
+                                </SelectedOfferItem>
+                            </SelectedOffer>
+                        </AcceptOffer>
+                    </UpdateOrderItem>
+                </ChangeOrder>
+                <Order>
+                    <OrderID>SQ_6M2A9K</OrderID>
+                    <OwnerCode/>
+                </Order>
+                
+                <PaymentInfo>
+                    <Amount CurCode="AUD" >660.00</Amount>
+                    <TypeCode>CA</TypeCode>
+                    <PaymentMethod>
+                        <Cash>
+                            <CashInd>true</CashInd>
+                        </Cash>
+                    </PaymentMethod>
+                </PaymentInfo>
+                
+            </Request>
