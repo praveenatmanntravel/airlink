@@ -30,6 +30,6 @@ module.exports = {
         res.send(html)
     },
     getResult: async (req, res, next) => {
-        
+        res.send('asa')
     }
 }

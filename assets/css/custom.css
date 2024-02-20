@@ -1,0 +1,344 @@
+#select-passanger input.form-control {
+  padding: 5px;
+  text-align: center;
+}
+.view-btn[aria-expanded="false"] .hide-detail {
+  display: none;
+}
+.view-btn[aria-expanded="true"] .view-detail {
+  display: none;
+}
+
+/* seat section */
+.seatMapBox {
+  border-radius: 30px;
+  min-height: auto;
+  margin-top: 20px;
+
+}
+
+.aircraftWrap {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.aircraftTopWing {
+  position: relative;
+  margin-left: 800px;
+  width: 590px;
+  height: 65px;
+  clear: both;
+  transform: skew(-45deg, 0deg);
+  -webkit-transform: skew(-45deg, 0deg);
+  -moz-transform: skew(-45deg, 0deg);
+  -o-transform: skew(-45deg, 0deg);
+  -ms-transform: skew(-45deg, 0deg);
+}
+
+.aircraftTopWing span {
+  position: absolute;
+  transform: skew(45deg, 0deg);
+  -webkit-transform: skew(45deg, 0deg);
+  -moz-transform: skew(45deg, 0deg);
+  -o-transform: skew(45deg, 0deg);
+  -ms-transform: skew(45deg, 0deg);
+  left: 45%;
+  top: 45%;
+}
+
+.aircraftBottomWing {
+  position: relative;
+  margin-left: 800px;
+  width: 590px;
+  height: 65px;
+  transform: skew(45deg, 0deg);
+  -moz-transform: skew(45deg, 0deg);
+  -webkit-transform: skew(45deg, 0deg);
+  -o-transform: skew(45deg, 0deg);
+  -ms-transform: skew(45deg, 0deg);
+}
+
+.aircraftBottomWing span {
+  position: absolute;
+  transform: skew(-45deg, 0deg);
+  -webkit-transform: skew(-45deg, 0deg);
+  -moz-transform: skew(-45deg, 0deg);
+  -o-transform: skew(-45deg, 0deg);
+  -ms-transform: skew(-45deg, 0deg);
+  left: 45%;
+  top: 45%;
+}
+.cockpit {
+  display: inline-flex;
+  vertical-align: top;
+  z-index: 0;
+  position: relative;
+}
+
+.cockpitHead {
+  display: flex;
+  height: 456px;
+  width: 1000px;
+  border-radius: 50%;
+  margin-right: -524px;
+  border: 1px solid #c5c5c7;
+}
+
+.cockpit .cockpitHead .front {
+  transform: rotateZ(-90deg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  font-weight: 700;
+}
+
+.tail {
+  display: inline-flex;
+  vertical-align: top;
+  z-index: 0;
+}
+
+.tailBack {
+  display: flex;
+  height: 456px;
+  width: 1000px;
+  border-radius: 50%;
+  margin-left: -524px;
+  border: 1px solid #c5c5c7;
+}
+
+.floor {
+  display: inline-flex;
+  padding: 18px 0;
+  position: relative;
+  width: 100%;
+  margin-left: -8px;
+  z-index: 0;
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid #cccccc;
+  min-height: 399px;
+  min-width: 1300px;
+}
+
+.floor.domestic {
+  min-width: 1400px;
+}
+
+.seats {
+  display: inline-flex;
+  flex-direction: column-reverse;
+  position: relative;
+  margin: 0 20px 0 0px;
+  padding: 0;
+  vertical-align: middle;
+  list-style: none;
+}
+
+.seats::before {
+  content: attr(data-line);
+  position: absolute;
+  left: 10px;
+  bottom: -18px;
+  font-size: 12px;
+
+}
+.seat-list {
+  margin: 3px 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.seat-list.numRow {
+  width: 32px;
+  height: 32px;
+}
+
+.iconBox {
+  width: 72px;
+  height: 72px;
+}
+
+.front-lavatory {
+  position: absolute;
+  bottom: 40%;
+  right: 50px;
+}
+
+.iconBox i {
+  font-size: 40px;
+  transform: rotateZ(-90deg);
+}
+
+.facility-food-front {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+}
+
+.iconBox.facility-food-back {
+  height: 164px;
+}
+
+.top-left-exists {
+  position: absolute;
+  left: -100px;
+  top: 24px;
+}
+
+.bottom-left-exists {
+  position: absolute;
+  left: -100px;
+  bottom: 20px;
+}
+
+.exists {
+  transform: rotate(90deg);
+}
+.ml20 {
+  margin-left: 20px;
+}
+
+.ml-50 {
+  margin-left: -50px;
+}
+
+.hideSeat {
+  display: none;
+}
+
+.seatsAircraftSeat {
+  width: 32px;
+  height: 32px;
+}
+
+.seatsIconAvailable {
+  width: 100%;
+  border: 2px #5D6976 solid;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.seatsIconUnavailable {
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.seatIconSeatNumber {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0;
+  position: relative;
+}
+.line1 {
+  top: 50%;
+  width: 100%;
+  display: block;
+  position: absolute;
+  transform: rotate(45deg);
+  border-top: 1px #989898 solid;
+}
+
+.line2 {
+  top: 50%;
+  width: 100%;
+  display: block;
+  position: absolute;
+  transform: rotate(135deg);
+  border-top: 1px #989898 solid;
+}
+
+.bgUnavailable {
+  top: 50%;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.seatsPopoverDetails .seatsIconAvailable {
+  width: 32px;
+  height: 32px;
+}
+.seatAvailable {
+  cursor: pointer;
+}
+.seatavail-info.popover {
+  min-width: 250px;
+  width: 100%;
+}
+.seat-info .seatsAircraftSeat {
+  width: 25px;
+  height: 25px;
+}
+.seat-info .seatsAircraftSeat {
+  width: 25px;
+  height: 25px;
+}
+#dateCarousel .carousel-control-prev, #dateCarousel .carousel-control-next {
+  width: auto;
+}
+.card.custom-collapse .card-widgets > a.collapsed i:before {
+  content: "\f0143";
+}
+#mealTab{
+  white-space: nowrap;
+}
+.name_format-info {
+  max-width: 699px;
+}
+.editable {
+  border: 1px solid #999;
+}
+.layover-stops {
+  top: 3px;
+}
+.sticky-top-sec {
+  position: sticky;
+  top: 70px;
+  z-index: 1000;
+}
+.processing button[type=submit].btn:after {
+  content: "\f1978";
+  display: inline-block;
+  font: normal normal normal 24px/1 "Material Design Icons";
+  font-size: inherit;
+  text-rendering: auto;
+  line-height: inherit;
+  -webkit-animation: mdi-spin 2s infinite linear;
+  animation: mdi-spin 2s infinite linear;
+}
+.processing button[type=submit].btn i{
+  display: none;
+}
+.segment-lst {
+  border-right: var(--ct-border-width) var(--ct-border-style) var(--ct-border-color);
+}
+.segment-lst:last-child {
+  border-right: none;
+}
+.at-flight-details-segment-arrival-city {
+  margin-top: -18px;
+}
+@media (min-width:767.99px) {
+  .flight_fare_selection{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

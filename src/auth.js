@@ -30,47 +30,114 @@ router.get('/', async function (req, res, next) {
 <html lang="en">
 
   <head>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Airlink</title>
-    <link rel="stylesheet" href="/stylesheets/5.3.0-alpha3_dist_css_bootstrap.min.css">
-    <link rel="stylesheet" href="/stylesheets/font-awesome_6.3.0_css_all.min.css">
+    <meta charset="utf-8" />
+    <title>Log In | Airlink Services Group</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
+    <meta content="Coderthemes" name="author" />
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="/images/favicon.ico">
+
+    <!-- Theme Config Js -->
+    <script src="/js/hyper-config.js"></script>
+
+    <!-- App css -->
+    <link href="/css/app-saas.css" rel="stylesheet" type="text/css" id="app-style" />
+
+    <!-- Icons css -->
+    <link href="/css/icons.min.css" rel="stylesheet" type="text/css" />
   </head>
 
-<body class="m-0 p-0 align-items-center" style="background-image: linear-gradient(to right, rgb(156, 3, 3), rgb(1, 1, 121));">
-
-  <div style="max-width: 444px; width:99%; min-height: 444px;" class="bg-white mx-auto my-5 shadow border rounded p-3">
-    <div class="d-flex flex-column">
-      <img src="https://airlinkservicesgroup.com.au/images/logo.jpg" width="100px" />
-      <h3 class="fw-bold" >Sign in to your account</h3>
-      ${_postBackMsg}
-      ${JSON.stringify(req.session?.postBackMsg)}
-      <form action="" method="POST" class="">
-        <input type="hidden" name="do" value="auth" />
-        <div class="mb-3">
-          <label class="form-label">Company</label>
-          <select class="form-select" name="agency" >
-            ${_agentsOption}
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Email address</label>
-          <input type="email" class="form-control" name="email" >
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-control"  name="password" >
-        </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" >
-          <label class="form-check-label">Remember Me</label>
-        </div>
-        <button type="submit" class="btn btn-primary ms-auto">Submit</button>
-      </form>
-    </div>
+  <body class="authentication-bg position-relative">
+  <!-- Pre-loader -->
+  <div id="preloader">
+      <div id="status">
+          <div class="bouncing-loader"><div ></div><div ></div><div ></div></div>
+      </div>
   </div>
-  <script src="/javascripts/5.3.0-alpha3_dist_js_bootstrap.bundle.min.js"></script>
+  <!-- End Preloader-->
+  <div class="position-absolute start-0 end-0 start-0 bottom-0 w-100 h-100">
+      <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 800 800'>
+          <g fill-opacity='0.22'>
+              <circle style="fill: rgba(var(--ct-primary-rgb), 0.1);" cx='400' cy='400' r='600'/>
+              <circle style="fill: rgba(var(--ct-primary-rgb), 0.2);" cx='400' cy='400' r='500'/>
+              <circle style="fill: rgba(var(--ct-primary-rgb), 0.3);" cx='400' cy='400' r='300'/>
+              <circle style="fill: rgba(var(--ct-primary-rgb), 0.4);" cx='400' cy='400' r='200'/>
+              <circle style="fill: rgba(var(--ct-primary-rgb), 0.5);" cx='400' cy='400' r='100'/>
+          </g>
+      </svg>
+  </div>
+  <div class="account-pages pt-2 pt-sm-5 pb-4 pb-sm-5 position-relative">
+  <div class="container">
+      <div class="row justify-content-center">
+          <div class="col-xxl-4 col-lg-5">
+              <div class="card">
+
+                  <!-- Logo -->
+                  <div class="card-header py-3 text-center bg-primary ">
+                      <a href="#">
+                          <span><img src="/images/logo.png" class="rounded" alt="logo" height="45"></span>
+                      </a>
+                  </div>
+                  
+                  <div class="card-body p-4">
+                      ${_postBackMsg}
+                      ${JSON.stringify(req.session?.postBackMsg)??''}
+                      <form action="" method="POST" class="">
+                          <div class="mb-3">
+                              <label for="companyname" class="form-label">Company</label>
+                              <select class="form-select" name="agency" >
+                                ${_agentsOption}
+                              </select>
+                          </div>
+                          <div class="mb-3">
+                              <label for="emailaddress" class="form-label">Email address</label>
+                              <input type="email" class="form-control" name="email" >
+                          </div>
+
+                          <div class="mb-3">
+                              <a href="forgot-password.html" class="text-muted float-end"><small>Forgot your password?</small></a>
+                              <label for="password" class="form-label">Password</label>
+                              <div class="input-group input-group-merge">
+                                  <input type="password"  id="password" class="form-control"  name="password" placeholder="Enter your password">
+                                  <div class="input-group-text" data-password="false">
+                                      <span class="password-eye"></span>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div class="mb-3 mb-3">
+                              <div class="form-check">
+                                  <input type="checkbox" class="form-check-input" id="checkbox-signin" checked>
+                                  <label class="form-check-label" for="checkbox-signin">Remember me</label>
+                              </div>
+                          </div>
+
+                          <div class="mb-3 mb-0 text-center">
+                              <button type="submit" class="btn btn-primary" type="submit">Log In</button>
+                          </div>
+
+                      </form>
+                  </div> <!-- end card-body -->
+              </div>
+              <!-- end card -->
+              <!-- end row -->
+
+          </div> <!-- end col -->
+      </div>
+      <!-- end row -->
+  </div>
+  <!-- end container -->
+</div>
+        <footer class="footer footer-alt">
+            <script>document.write(new Date().getFullYear())</script> © AIRLINK. All rights reserved.
+        </footer>
+        <!-- Vendor js -->
+        <script src="/js/vendor.min.js"></script>
+        
+        <!-- App js -->
+        <script src="/js/app.min.js"></script>
 </body>
 </html>
 `)
@@ -88,6 +155,7 @@ router.post('/', async function (req, res, next) {
       req.session.auth = _user;
       const _interface = await mongodbClient.db('Airlink').collection('interface').find({agency:_user.agency}, {projection: { agency: 0 },}).toArray();
       req.session.interface = _interface
+      console.log(_interface);
       if(_interface.length > 0 ){
         return res.redirect(`/${_interface[0]._id}`)
       }else{

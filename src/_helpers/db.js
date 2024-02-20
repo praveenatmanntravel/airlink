@@ -5,7 +5,7 @@ const connectionString = `mongodb+srv://${encodeURIComponent(process.env.MONGO_D
 const mongodbClient = new MongoClient(connectionString, {
     serverApi: {
         version: ServerApiVersion.v1,
-        strict: true,
+        strict: false,
         deprecationErrors: true,
     }
 }

@@ -4,8 +4,8 @@
 module.exports = {
 
     html_doc: (req, res, next, content) => {
-        
-    // prepare mainNav
+
+        // prepare mainNav
         var mainNav = ``;
 
         var _interface = req.session.interface;
@@ -20,145 +20,262 @@ module.exports = {
         });
 
         return `
-        <!doctype html>
-        <html lang="en">
+        <!DOCTYPE html>
+        <html lang="en" >
             <head>
-                <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>Airlink</title>
-                <link rel="stylesheet" href="/stylesheets/5.3.0-alpha3_dist_css_bootstrap.min.css">
-                <link rel="stylesheet" href="/stylesheets/font-awesome_6.3.0_css_all.min.css">
-                <link rel="stylesheet" href="/stylesheets/style.css">
-                <link rel="stylesheet" href="/stylesheets/theme.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css">
-                <script src="/javascripts/5.3.0-alpha3_dist_js_bootstrap.bundle.min.js"></script>
-                <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
-                <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-                <script src="/javascripts/search.js"></script>
+                <meta charset="utf-8" />
+                <title>Dashboard | Airlink Services Group</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta content="Transform your travel consolidation with our efficient platform. As a reliable consolidator, access exclusive deals, streamline operations, and boost profitability. Elevate your business with our innovative tools, connecting you to a world of travel opportunities." name="description" />
+                <meta content="Airlink Services Group" name="author" />
+
+                <!-- App favicon -->
+                <link rel="shortcut icon" href="/images/favicon.ico">
+
+                <!-- Theme Config Js -->
+                <script src="/js/hyper-config.js"></script>
+
+                <!-- App css -->
+                <link href="/css/app-saas.css" rel="stylesheet" type="text/css" id="app-style" />
+                <link href="/css/custom.css" rel="stylesheet" type="text/css" id="app-style" />
+
+                <!-- Icons css -->
+                <link href="/css/icons.min.css" rel="stylesheet" type="text/css" />
+                
+                <!-- Daterangepicker css -->
+                <link href="/vendor/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+                
+                <!-- Bootstrap Touchspin css -->
+                <link href="/vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css" rel="stylesheet" type="text/css" />
+                
+                <!-- Vendor js -->
+                <script src="/js/vendor.min.js"></script>
+
+                <!-- pra -->
+                <script src="/js/ui/const.js"></script>
             </head>
+
             <body>
-                <header>
-               
-                <nav class="navbar navbar-expand-sm fixed-top shadow bg-white p-0">
-                    <div class="container-fluid custom-header">   
-                        <img src="/images/airlink-logo.jpg" width="150" alt="Airlink" class="img-fluid">
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-                        <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarCollapse">
-                            
-                        <form class="d-flex ms-auto" role="search">
-                            <input class="form-control form-control-sm me-2" type="text" placeholder="Search PNR">
-                            <button class="btn btn-primary d-none" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
-                        </form>
-                        <div class="hsearch-flight">
-                            <a class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Flight</a>
-                        </div> 
-                        <ul class="navbar-nav mb-2 mb-md-0">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-regular fa-circle-user me-2"></i>Account
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li class="dropdown-item">Mital Patel</li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#">Profile</a></li>
-                                    <li><a class="dropdown-item" href="#">LogOut</a></li>
-                                </ul>
-                            </li>
-                        </ul> 
-                        <div class="v-menu" data-bs-toggle="offcanvas" data-bs-target="#vmenu">
-                        <i class="fa-solid fa-bars"></i>
-                        </div>   
+            
+                <!-- Pre-loader -->
+                <div id="preloader">
+                    <div id="status">
+                        <div class="bouncing-loader"><div ></div><div ></div><div ></div></div>
+                    </div>
+                </div>
+                <!-- End Preloader-->
+
+                <!-- Begin page -->
+                <div class="wrapper">
+                <!-- ========== Topbar Start ========== -->
+                    <div class="navbar-custom">
+                        <div class="topbar container-fluid">
+                            <div class="d-flex align-items-center gap-lg-2 gap-1">
+        
+                                <!-- Topbar Brand Logo -->
+                                <div class="logo-topbar">
+                                    <!-- Logo light -->
+                                    <a href="index.html" class="logo-light">
+                                        <span class="logo-lg">
+                                            <img src="/images/logo.png" alt="logo">
+                                        </span>
+                                        <span class="logo-sm">
+                                            <img src="/images/logo-sm.png" alt="small logo">
+                                        </span>
+                                    </a>
+        
+                                    <!-- Logo Dark -->
+                                    <a href="index.html" class="logo-dark">
+                                        <span class="logo-lg">
+                                            <img src="/images/logo-dark.png" alt="dark logo">
+                                        </span>
+                                        <span class="logo-sm">
+                                            <img src="/images/logo-dark-sm.png" alt="small logo">
+                                        </span>
+                                    </a>
+                                </div>
+        
+                                <!-- Sidebar Menu Toggle Button -->
+                                <button class="button-toggle-menu">
+                                    <i class="mdi mdi-menu"></i>
+                                </button>
+        
+                                <!-- Horizontal Menu Toggle Button -->
+                                <button class="navbar-toggle" data-bs-toggle="collapse" data-bs-target="#topnav-menu-content">
+                                    <div class="lines">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </button>
+        
+                                <!-- Topbar Search Form -->
+                                <div class="app-search dropdown d-none d-lg-block">
+                                    <form>
+                                        <div class="input-group">
+                                            <input type="search" class="form-control" placeholder="Search PNR" id="top-search">
+                                            <span class="mdi mdi-magnify search-icon"></span>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+        
+                            <ul class="topbar-menu d-flex align-items-center gap-3">
+                                <li class="dropdown d-lg-none">
+                                    <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                        <i class="ri-search-line font-22"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-animated dropdown-lg p-0">
+                                        <form class="p-3">
+                                            <input type="search" class="form-control" placeholder="Search PNR" aria-label="Search PNR">
+                                        </form>
+                                    </div>
+                                </li>
+        
+                                <li class="d-none d-sm-inline-block">
+                                    <div class="nav-link" id="light-dark-mode" data-bs-toggle="tooltip" data-bs-placement="left" title="Theme Mode">
+                                        <i class="ri-moon-line font-22"></i>
+                                    </div>
+                                </li>
+        
+        
+                                <li class="d-none d-md-inline-block">
+                                    <a class="nav-link" href="" data-toggle="fullscreen">
+                                        <i class="ri-fullscreen-line font-22"></i>
+                                    </a>
+                                </li>
+        
+                                <li class="dropdown">
+                                    <a class="nav-link dropdown-toggle arrow-none nav-user px-2" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                        <span class="account-user-avatar">
+                                            <img src="/images/users/avatar-1.jpg" alt="user-image" width="32" class="rounded-circle">
+                                        </span>
+                                        <span class="d-lg-flex flex-column gap-1 d-none">
+                                            <h5 class="my-0">Dominic Keller</h5>
+                                            <h6 class="my-0 fw-normal">Founder</h6>
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
+                                        <!-- item-->
+                                        <div class=" dropdown-header noti-title">
+                                            <h6 class="text-overflow m-0">Welcome !</h6>
+                                        </div>
+        
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item">
+                                            <i class="mdi mdi-account-circle me-1"></i>
+                                            <span>My Account</span>
+                                        </a>
+        
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item">
+                                            <i class="mdi mdi-account-edit me-1"></i>
+                                            <span>Settings</span>
+                                        </a>
+        
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item">
+                                            <i class="mdi mdi-lifebuoy me-1"></i>
+                                            <span>Support</span>
+                                        </a>
+        
+                                        <!-- item-->
+                                        <a href="javascript:void(0);" class="dropdown-item">
+                                            <i class="mdi mdi-logout me-1"></i>
+                                            <span>Logout</span>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                </nav>
-                <div class="offcanvas offcanvas-end vmenu" id="vmenu">
-                <div class="offcanvas-header justify-content-end">
-                    <button type="button" class="btn-close1" data-bs-dismiss="offcanvas"><i class="fa-solid fa-xmark"></i></button>
+                    <!-- ========== Topbar End ========== -->
+        
+                    <!-- ========== Left Sidebar Start ========== -->
+                    <div class="leftside-menu">
+        
+                        <!-- Brand Logo Light -->
+                        <a href="index.html" class="logo logo-light">
+                            <span class="logo-lg">
+                                <img src="/images/logo.png" alt="logo">
+                            </span>
+                            <span class="logo-sm">
+                                <img src="/images/logo-sm.png" alt="small logo">
+                            </span>
+                        </a>
+        
+                        <!-- Brand Logo Dark -->
+                        <a href="index.html" class="logo logo-dark">
+                            <span class="logo-lg">
+                                <img src="/images/logo-dark.png" alt="dark logo">
+                            </span>
+                            <span class="logo-sm">
+                                <img src="/images/logo-dark-sm.png" alt="small logo">
+                            </span>
+                        </a>
+        
+                        <!-- Sidebar Hover Menu Toggle Button -->
+                        <div class="button-sm-hover" data-bs-toggle="tooltip" data-bs-placement="right" title="Show Full Sidebar">
+                            <i class="ri-checkbox-blank-circle-line align-middle"></i>
+                        </div>
+        
+                        <!-- Full Sidebar Menu Close Button -->
+                        <div class="button-close-fullsidebar">
+                            <i class="ri-close-fill align-middle"></i>
+                        </div>
+        
+                        <!-- Sidebar -left -->
+                        <div class="h-100" id="leftside-menu-container" data-simplebar>
+                            <ul id="mainNav" class="side-nav" ></ul>
+                    
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                    <!-- ========== Left Sidebar End ========== -->
+        
+                    <!-- ============================================================== -->
+                    <!-- Start Page Content here -->
+                    <!-- ============================================================== -->
+                    <div class="content-page">
+                        <div class="content">
+                            ${content}
+                        </div>
+                    </div>
+                    <!-- ============================================================== -->
+                    <!-- End Page content -->
+                    <!-- ============================================================== -->
                 </div>
-                <div class="offcanvas-body vmenu-body p-0">
-                <div class="d-flex flex-column justify-content-between h-100 ">
-                    <ul id="mainNav" class=" p-4 list-unstyled menuList" >
-                    </ul>
-                    <hr>
-                    <ul class="p-4 list-unstyled menuList">
-                        <li class="mb-4">
-                            <a class="d-flex align-items-center">
-                                <i class="fa-regular fa-flag pe-2"></i>Reports
-                            </a>       
-                        </li>
-                        <li class="mb-4">
-                            <a class="btn-toggle d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
-                                <i class="fa-solid fa-chart-line pe-2"></i>Dashboard
-                            </a>
-                            <div class="collapse" id="dashboard-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                    <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Overview</a></li>
-                                    <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Updates</a></li>
-                                    <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Reports</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        <li class="mb-4">
-                            <a class="btn-toggle d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#searchflight-collapse" aria-expanded="false">
-                            <i class="fa-solid fa-magnifying-glass pe-2"></i>Search Flights
-                            </a>
-                            <div class="collapse" id="searchflight-collapse">
-                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Overview</a></li>
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Weekly</a></li>
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Monthly</a></li>
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Annually</a></li>
-                            </ul>
-                            </div>
-                        </li>
-                        <li class="mb-4">
-                            <a class="btn-toggle d-flex align-items-center collapsed" data-bs-toggle="collapse" data-bs-target="#tdetail-collapse" aria-expanded="false">
-                            <i class="fa-solid fa-person-walking-luggage pe-2"></i>Traveller Details
-                            </a>
-                            <div class="collapse" id="tdetail-collapse">
-                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Traveller List</a></li>
-                                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none align-items-center"><i class="fa-solid fa-caret-right me-2"></i>Processed</a></li>
-                            </ul>
-                            </div>
-                        </li>
-                           
-                    </ul>
-                    <div class="menu-other-info border-top p-4 bg-light">
-                    <div class="d-flex menu-other-sec">
-                        <i class="bi bi-telephone-fill pe-2"></i>
-                        <div class="other-div">
-                        <div class="fw-semibold">24×7 Customer Support</div>
-                        <p class="m-0"><a href="tel:(+61) 25698745">(+61) 25698745</a></p>
-                        </div>   
-                    </div>  
-                        <div class="d-flex menu-other-sec mt-4">
-                        <i class="bi bi-envelope-fill pe-2"></i>
-                        <div class="other-div">
-                            <div class="fw-semibold">Email us </div>
-                            <p class="m-0"><a href="mailto:support@airlink.com">support@airlink.com</a></p>
-                        </div>   
-                        </div> 
-                </div>
-                </div>
-                            
-                </div>
-                </div>      
-                
-                </header>
-                ${content}
+                <!-- END wrapper -->
 
+               
+
+                <!-- Bootstrap Touchspin Plugin js -->
+                <script src="/vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+                    <!-- Daterangepicker Plugin js -->
+                    <script src="/vendor/daterangepicker/moment.min.js"></script>
+                    <script src="/vendor/daterangepicker/daterangepicker.js"></script>
+
+                    <!-- Plgins only -->
+                <script src="/vendor/ion-rangeslider/js/ion.rangeSlider.min.js"></script>
+                <script src="/js/ui/component.range-slider.js"></script>
+                <!-- Apex Charts js -->
+                
+
+                <!-- Vector Map js -->
+                <script src="/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.min.js"></script>
+                <script src="/vendor/admin-resources/jquery.vectormap/maps/jquery-jvectormap-world-mill-en.js"></script>
+
+           
+                <!-- App js -->
+                <script src="/js/app.js"></script>
+                <script src="/js/custom.js"></script>
+                <script src="/js/main.js"></script>
+                
                 <script>
                     renderGroupedNavigationMenu(${JSON.stringify(_interface)});
-
-              
                 </script>
+                
+                
             </body>
         </html>
         `;

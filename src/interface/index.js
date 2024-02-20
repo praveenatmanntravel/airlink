@@ -2,7 +2,10 @@ var express = require('express');
 const { auth } = require('../_helpers/authorization')
 const {load_interface} = require('../_helpers/load_interface')
 const mongodbClient = require('../_helpers/db');
-const { ObjectId } = require("mongodb");
+const { ObjectIZd } = require("mongodb");
+const { index } = require("./dashboard");
+
+
 
 var router = express.Router();
 router.all('*', [auth], async function (req, res, next) {
@@ -11,6 +14,7 @@ router.all('*', [auth], async function (req, res, next) {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
+    return index(req, res, next);
     console.log(req.params)
     res.send(`
     <h1>Dashboarde</h1>
