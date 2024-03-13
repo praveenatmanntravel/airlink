@@ -840,6 +840,24 @@ function fetchOfferPrice(id) {
 function build_FareDetail() {
 
 }
+
+function sia_service_to_string(ServiceDefinitionRefID) {
+    var s = ``
+    if (DataLists.hasOwnProperty(ServiceDefinitionRefID)) {
+        const ServiceDefinition = DataLists[ServiceDefinitionRefID]
+        switch (ServiceDefinition.Name) {
+            case "Bag allowances":
+                const FBA = DataLists[ServiceDefinition.ServiceDefinitionAssociation?.BaggageAllowanceRefID] || false
+                if (FBA) {
+                    s += ` | Type: ${FBA.TypeCode} | <b>${FBA.WeightAllowance?.MaximumWeightMeasure?.['#text']} ${FBA.WeightAllowance?.MaximumWeightMeasure?.['@_UnitCode']}</b>`
+                }
+                break;
+            case "Bag allowances":
+        }
+    }
+    return s
+}
+
 function build_PNRview(d) {
     // parsing data for pnr view
     const rsJson = JSON.parse(d?.OrderRetrieve?.rsJson)
@@ -986,10 +1004,13 @@ function build_PNRview(d) {
             // tab
             var tabs = `
             <ul class="nav nav-tabs mb-3 flex-nowrap overflow-x-auto overflow-y-hidden" id="fareruleTab" role="tablist">`
-
             var tabBody = `
             <div class="tab-content px-3" id="myTabContent">`
             var active = `active`
+
+            var OtherDetails = `<div class="border-bottom py-2">`
+
+
             _FareDetail.FareComponent?.forEach((FareComponent) => {
                 const _Service = Order.OrderItem.Service.filter((e) => e.ServiceID == `${FareComponent.SegmentRefs}_${Pax.PaxID}`)
 
@@ -1061,20 +1082,14 @@ function build_PNRview(d) {
                         tabBody += `
                             ${rmk}
                         </dd>`
-                    })
+                    })/crm/agent/1.0
                     */
-                    _FareDetail?.Remarks?.Remark.forEach((Remark) => {
-                        tabBody += `<dd class="col-sm-12 border-bottom py-2 text-danger">${Remark}</dd>`
-                    })
-
-                    _Service?.forEach((Service)=>{
+                    _Service?.forEach((Service) => {
                         tabBody += `
                         <dt class="col-sm-3 border-bottom py-2">Service</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">Status: <b>${Service['StatusCode']}</b> ${JSON.stringify({})}</dd>
+                        <dd class="col-sm-9 border-bottom py-2 mb-0">Status: ${Service['StatusCode']} ${sia_service_to_string(Service?.ServiceAssociations?.ServiceDefinitionRef?.ServiceDefinitionRefID)}</dd>
                     `
                     })
-                    tabBody += `
-                    ${JSON.stringify(_Service)}`
 
                 }
 
@@ -1087,7 +1102,28 @@ function build_PNRview(d) {
             tabs += `
             </ul>`
 
+
+            const Price = _FareDetail.Price || false
+            if (Price) {
+                OtherDetails += `
+                       
+                        BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b><br><b>Tax Breakdown: </b>`
+                Price.Taxes?.Breakdown?.Tax.forEach((Tax) => {
+                    OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']} | `
+                })
+            }
+            OtherDetails += `
+                <p class="col-sm-12 pt-2 text-danger">`
+            _FareDetail?.Remarks?.Remark.forEach((Remark) => {
+                OtherDetails += `${Remark}</br>`
+            })
+            OtherDetails += `
+                </p>`
+
             tabBody += `
+            </div>`
+
+            OtherDetails += `
             </div>`
 
             str += `
@@ -1097,6 +1133,7 @@ function build_PNRview(d) {
                         <div class="modal-body">
                             ${tabs}
                             ${tabBody}
+                            ${OtherDetails}
                         </div>
                     </div>
                 </td>
