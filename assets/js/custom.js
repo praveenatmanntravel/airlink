@@ -1,54 +1,53 @@
-$(document).ready(function () {
+$(document).ready(function(){
   $('#select-passanger').on('click', function (event) {
-    event.stopPropagation();
+      event.stopPropagation();
   });
-
-
-  $('input[type="radio"].changeJType').click(function () {
+  
+  
+  $('input[type="radio"]').click(function(){
     var inputValue = $(this).attr("value");
-    
     var targetBox = $("." + inputValue);
     $(".box").not(targetBox).hide();
     $(targetBox).show();
     $("fieldset").not(targetBox).prop('disabled', true);
     $(targetBox).prop('disabled', false);
   });
-
+  
   $(".view-btn").click(function (e) {
-    e.preventDefault();
-
-    $(this).closest(".list-item.accordion-item").toggleClass("active").siblings().removeClass('active');;
-  });
-
-  $('.traveldate').daterangepicker({
-    "autoApply": true,
-    "locale": {
-      "format": "YYYY-MM-DD",
-      "separator": " to "
-    }
-  });
-  $('.pnrdaterange').daterangepicker({
-    "autoApply": true,
-    "locale": {
-      "format": "YYYY-MM-DD",
-      "separator": " to "
-    }
-  });
-
+      e.preventDefault();
+      
+      $(this).closest(".list-item.accordion-item").toggleClass("active").siblings().removeClass('active');;
+    });
+  
+    $('.traveldate').daterangepicker({
+      "autoApply": true,
+      "locale" : {
+        "format": "YYYY-MM-DD",
+        "separator": " to "
+      }
+    });
+    $('.pnrdaterange').daterangepicker({
+      "autoApply": true,
+      "locale" : {
+        "format": "YYYY-MM-DD",
+        "separator": " to "
+      }
+    });
+    
   $('.departdate').daterangepicker({
     "autoApply": true,
-    "locale": {
+    "locale" : {
       "format": "YYYY-MM-DD"
     },
-    singleDatePicker: true
+    singleDatePicker: true 
   });
-
-  // add Multicity
-
-  var addcity = 1;
-  $('#flightsearch').on('click', '.addcity', function () {
-
-    var data = `<fieldset id="multicity-fieldset"><div class="row multicity box" id="addcitysec_${(addcity++)}">
+  
+        // add Multicity
+  
+        var addcity = 1;
+      $('#searchFlight').on('click', '.addcity', function(){
+  
+        var data = `<fieldset id="multicity-fieldset"><div class="row multicity box" id="addcitysec_${(addcity++)}">
         <div class="col-md-4">
             <div class="form-floating mb-3">
                 <input type="text" class="form-control" name="from[]" id="from" placeholder="From" />
@@ -74,28 +73,29 @@ $(document).ready(function () {
             </div>
         </div>
     </div></fieldset>`;
-    $(".input-containers").append(data);
-    $('.departdate').daterangepicker({
-      "locale": {
-        "format": "YYYY-MM-DD"
-      },
-      singleDatePicker: true
+        $(".input-containers").append(data);
+        $('.departdate').daterangepicker({
+          "locale" : {
+            "format": "YYYY-MM-DD"
+          },
+          singleDatePicker: true 
+        });
+      });
+  
+    $('#searchFlight').on("click", ".remove-city", function(e) {
+        e.preventdefault;
+        $(this).closest(".multicity").remove();
     });
-  });
-
-  $('#flightsearch').on("click", ".remove-city", function (e) {
-    e.preventdefault;
-    $(this).closest(".multicity").remove();
-  });
-
-
-
-  // select Seat popover
-
-  $(".seatAvailable").popover({
-    container: "body",
-    title: '<div class="d-flex justify-content-between"><span>Select Seat</span><span class="closeSeatSelection" style="cursor:pointer;" onClick="closeSeatSelection()" ><i class="mdi mdi-close"></i></span></div>',
-    content: `<div class="seatsPopoverDetails d-flex align-items-center mb-3">
+  
+  
+  
+    // select Seat popover
+  
+    $(".seatAvailable").popover({
+      container: "body",
+      customClass: "seatavail-info",
+      title: '<div class="d-flex justify-content-between"><span>Select Seat</span><span class="closeSeatSelection" style="cursor:pointer;" onClick="closeSeatSelection()" ><i class="mdi mdi-close"></i></span></div>',
+      content: `<div class="seatsPopoverDetails d-flex align-items-center mb-3">
                       <div class="seatsIconAvailable">
                           <div class="seatnumber fw-bold"></div>
                       </div>
@@ -130,15 +130,15 @@ $(document).ready(function () {
                       </div>
                       </form>
                   </div>`,
-    html: true,
-    sanitize: false,
+      html: true,
+      sanitize: false,
   });
-
+  
   // Share Itinary popover
-
+  
   $(".shareItinerary").popover({
     container: "body",
-    title: '<div class="d-flex justify-content-between"><span>Share Itinerary</span><span class="closeSharePopover" style="cursor:pointer;" onClick="closeSeatSelection()" ><i class="mdi mdi-close"></i></span></div>',
+    title: '<div class="d-flex justify-content-between"><span>Share Itinerary</span><span class="closeSharePopover" style="cursor:pointer;" onClick="closeShareItinerary()" ><i class="mdi mdi-close"></i></span></div>',
     content: `<div class="shareform" id="shareform">
                     <form>
                         <div class="d-flex justify-content-between align-items-center">
@@ -150,9 +150,32 @@ $(document).ready(function () {
     html: true,
     sanitize: false,
   });
-
+  
+  // Hide all other popover 
+  $(document).on('click', function (e) {
+    var
+        $popover,
+        $target = $(e.target);
+  
+    //do nothing if there was a click on popover content
+    if ($target.hasClass('popover') || $target.closest('.popover').length) {
+        return;
+    }
+  
+    $('[data-bs-toggle="popover"]').each(function () {
+        $popover = $(this);
+  
+        if (!$popover.is(e.target) &&
+            $popover.has(e.target).length === 0 &&
+            $('.popover').has(e.target).length === 0)
+        {
+            $popover.popover('hide');
+        } 
+    });
+  })
+  
   //name format popover
-
+  
   $(".nameformat").popover({
     container: "body",
     customClass: "name_format-info",
@@ -207,62 +230,71 @@ $(document).ready(function () {
     html: true,
     sanitize: false,
   });
-
+  
   document.querySelectorAll(".seatAvailable").forEach((item) => {
-    item.addEventListener("show.bs.popover", (event) => {
-      $(".seatAvailable").popover("hide");
-    });
-
-    item.addEventListener("inserted.bs.popover", (event) => {
-      const rowseat = event.target.getAttribute("row");
-      const colseat = event.target.getAttribute("col");
-      $(".seatno").val(`${rowseat}${colseat}`);
-      $(".seatnumber").text(`${rowseat}${colseat}`);
-    });
+      item.addEventListener("show.bs.popover", (event) => {
+          $(".seatAvailable").popover("hide");
+      });
+  
+      item.addEventListener("inserted.bs.popover", (event) => {
+          const rowseat = event.target.getAttribute("row");
+          const colseat = event.target.getAttribute("col");
+          $(".seatno").val(`${rowseat}${colseat}`);
+          $(".seatnumber").text(`${rowseat}${colseat}`);
+      });
   });
-});
-function closeSeatSelection() {
-  $(".seatsAircraftSeat").popover("hide");
-}
-function closepopover() {
-  $(".nameformat").popover("hide");
-}
-function closeSeatSelection() {
-  $(".shareItinerary").popover("hide");
-}
-
-$('.altMatrix__cell.is--price').hover(
-  function () {
-    var colval = $(this).attr("col");
-    const ids = $('.date-sec.altMatrix__table__cell').map((i, el) => el.getAttribute('col')).get();
-    $.each(ids, function (index, value) {
-      if (colval == value) {
-        $('.date-sec.altMatrix__table__cell[col=' + colval + ']').addClass("is-active");
-      }
-    });
-  },
-  function () {
-    $('.date-sec.altMatrix__table__cell').removeClass("is-active");
+  
+  $(".layover_info").tooltip({
+    title: `<div class="custom-tooltiptext" style="width:300px;">
+              <div class="change-terminal">Terminal Change</div>
+              <div class="change-terminal"><span>Colombo (COL)</span> | <span><strong>13h 55m </strong> Layover</span></div>
+            </div>`,  
+    customClass: 'primary-tooltip',
+    html: true
+  });
+  
+  });
+  function closeSeatSelection() {
+    $(".seatAvailable").popover("hide");
   }
-);
-
-// Change pax details at PNR detail page
-
-function toggleReadonly() {
-  var emailField = document.getElementById('pax-email');
-  var phoneField = document.getElementById('pax-number');
-  var editButton = document.getElementById('editButton');
-
-  // Toggle readonly attribute
-  emailField.readOnly = !emailField.readOnly;
-  phoneField.readOnly = !phoneField.readOnly;
-
-  // Toggle class for highlighting
-  emailField.classList.toggle('editable', !emailField.readOnly);
-  phoneField.classList.toggle('editable', !phoneField.readOnly);
-
-  // Change button text based on readonly state
-  editButton.textContent = emailField.readOnly ? 'Edit Details' : 'Update Details';
-
-}
-
+  function closepopover() {
+    $(".nameformat").popover("hide");
+  }
+  function closeShareItinerary() {
+      $(".shareItinerary").popover("hide");
+  }
+  
+    $('.altMatrix__cell.is--price').hover(
+      function(){
+        var colval = $(this).attr("col");
+        const ids = $('.date-sec.altMatrix__table__cell').map((i, el) => el.getAttribute('col')).get();  
+        $.each(ids, function( index, value ) {
+          if(colval == value){
+            $('.date-sec.altMatrix__table__cell[col=' + colval + ']').addClass("is-active");
+          }  
+        });
+     },
+      function(){
+        $('.date-sec.altMatrix__table__cell').removeClass("is-active");
+      }
+    );
+  
+    // Change pax details at PNR detail page
+  
+    function toggleReadonly() {
+      var emailField = document.getElementById('pax-email');
+              var phoneField = document.getElementById('pax-number');
+              var editButton = document.getElementById('editButton');
+  
+              // Toggle readonly attribute
+              emailField.readOnly = !emailField.readOnly;
+              phoneField.readOnly = !phoneField.readOnly;
+  
+              // Toggle class for highlighting
+              emailField.classList.toggle('editable', !emailField.readOnly);
+              phoneField.classList.toggle('editable', !phoneField.readOnly);
+  
+              // Change button text based on readonly state
+              editButton.textContent = emailField.readOnly ? 'Edit Details' : 'Update Details';
+  
+   }

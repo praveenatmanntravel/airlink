@@ -2,7 +2,7 @@
 
 
 // variables declariation
-var tp_search_params = {}
+var search_form_params = {}
 var ff = []
 var ProductOffering = {}
 var ReferenceList = {}
@@ -220,7 +220,7 @@ function fare_available(ProductBrandOffering, CatalogProductOfferingID) {
                 <div class="select-flight__fare-col select-flight__fare-col-footer-wrap">
                     <div class="select-flight__fare-col-footer bg-body-tertiary">
                         <h4 class="select-flight__fare-footer-price">$${amount_format(_ProductBrandOffering.Price.TotalPrice)}</h4> 
-                        <button class="btn btn-outline-primary btn-sm select_fare" sequence=${current_CatalogProductOffering_sequence} CatalogProductOfferingID="${CatalogProductOfferingID}" ProductId="${_ProductBrandOffering.Product[0].productRef}" onClick="">Select</button>
+                        <button class="btn btn-outline-primary btn-sm select_fare" sequence=${current_CatalogProductOffering_sequence} CatalogProductOfferingID="${CatalogProductOfferingID}" ProductId="${_ProductBrandOffering.Product[0].productRef}" onClick="" provider="travelport" >Select</button>
                     </div>
                 </div> 
                 <div class="select-flight__fare-col summary-sec">
@@ -347,12 +347,13 @@ $(`body`).on('click', '#searchNextLeg', function () {
         });
 })
 
-$(`body`).on('click', '.select_fare', function () {
-    const $this = $(this)
-    const _sequence = $this.attr('sequence')
+
+function tp_buld_fareselectedui(button) {
+
+    const _sequence = button.getAttribute('sequence')
     console.log(CatalogProductsSelected)
     CatalogProductsSelected = CatalogProductsSelected?.filter(a => a.sequence !== _sequence);
-    CatalogProductsSelected.push({ sequence: _sequence, CatalogProductOfferingsID: $this.attr('CatalogProductOfferingsID'), CatalogProductOfferingID: $this.attr('CatalogProductOfferingID'), ProductId: $this.attr('ProductId') })
+    CatalogProductsSelected.push({ sequence: _sequence, CatalogProductOfferingsID:button.getAttribute('CatalogProductOfferingsID'), CatalogProductOfferingID: button.getAttribute('CatalogProductOfferingID'), ProductId: button.getAttribute('ProductId') })
     if (CatalogProductsSelected.length > 0) {
 
         $("#selected_product").addClass('d-flex').removeClass('d-none')
@@ -392,7 +393,7 @@ $(`body`).on('click', '.select_fare', function () {
                 `)
         })
         $("#selected_product").find('.act').remove()
-        if (tp_search_params.journeytype == 'oneway') {
+        if (search_form_params.journeytype == 'oneway') {
             $("#selected_product").append(`
                 <div class="right-info col-md-3 d-flex align-items-center justify-content-around act">
                     <div>
@@ -402,7 +403,7 @@ $(`body`).on('click', '.select_fare', function () {
                     <button type="button" class="btn btn-primary" id="doPrice" >Confirm & Add Pax\s</button>
                 </div>
                 `)
-        } else if (tp_search_params.journeytype == 'return') {
+        } else if (search_form_params.journeytype == 'return') {
             if (CatalogProductsSelectedCount == 1) {
 
                 $("#selected_product").append(`
@@ -429,9 +430,7 @@ $(`body`).on('click', '.select_fare', function () {
     } else {
         $("#selected_product").addClass('d-none').removeClass('d-flex')
     }
-    //alert(1)
-});
-
+}
 $(`body`).on('click', '#doPrice', function () {
 
     $.ajax({

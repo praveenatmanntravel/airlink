@@ -28,7 +28,7 @@ module.exports = {
             </div>
         </div>
         <!-- end page title -->
-
+       
         <!-- Portlet card -->
         <div class="card mb-md-0 mb-3">
             <div class="card-body">
@@ -115,30 +115,30 @@ module.exports = {
                     </div>
                     <div class="input-containers">
                         <fieldset id="oneway-fieldset" class="oneway return multicity">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="from" placeholder="From" name="from" value="MEL" />
-                                    <label for="from">From?</label>
-                                </div>  
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="to" placeholder="To?" name="to" value="DEL" />
-                                    <label for="to">To?</label>
-                                </div>   
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating mb-3 w-100 oneway box multicity">
-                                    <input type="text" class="form-control departdate" id="departdate" data-toggle="date-picker" data-single-date-picker="true" name="deptDate">
-                                    <label for="departdate">Depart</label>
-                                </div> 
-                                <div class="form-floating box mb-3 w-100 return" style="display: none;">
-                                    <input type="text" class="form-control traveldate" id="traveldate"  data-toggle="date-picker" name="returnDate">
-                                    <label for="traveldate">Depart to Return</span></label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="from" placeholder="From" name="from" value="MEL" />
+                                        <label for="from">From?</label>
+                                    </div>  
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="to" placeholder="To?" name="to" value="DEL" />
+                                        <label for="to">To?</label>
+                                    </div>   
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating mb-3 w-100 oneway box multicity">
+                                        <input type="text" class="form-control departdate" id="departdate" data-toggle="date-picker" data-single-date-picker="true" name="deptDate">
+                                        <label for="departdate">Depart</label>
+                                    </div> 
+                                    <div class="form-floating box mb-3 w-100 return" style="display: none;">
+                                        <input type="text" class="form-control traveldate" id="traveldate"  data-toggle="date-picker" name="returnDate">
+                                        <label for="traveldate">Depart to Return</span></label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </fieldset>
                         <fieldset id="multicity-fieldset" class="multicity" disabled>
                         <div class="row multicity box" style="display: none;">
@@ -201,7 +201,7 @@ module.exports = {
     </div> <!-- container -->
     
     <div class="row mt-3">
-        <div class="col-xl-3">
+        <div class="col-xl-3" id="ui_filters" >
             <h4 class="mb-3"><i class="mdi mdi-filter-outline me-1"></i>Advanced Filter</h4>
             <div class="card">
                 <div class="card-body">
@@ -216,86 +216,7 @@ module.exports = {
                     </ul> 
                 </div>
             </div>
-            <div class="card custom-collapse">
-                <div class="card-body">
-                    <div class="card-widgets">
-                        <a data-bs-toggle="collapse" href="#onwardJourny" role="button" aria-expanded="true" aria-controls="onwardJourny" class=""><i class="mdi mdi-chevron-down"></i></a>
-                    </div>
-                    <h4 class="card-title mb-0">Onward Journey</h4>
-                    <div id="onwardJourny" class="pt-2 mt-2 border-top collapse show" style="">
-                        <h5>Stops From Melbourne</h5>
-                        <div class="my-3 fs-6">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="customCheck1">
-                                    <label class="form-check-label" for="customCheck1">Direct (10)</label>
-                                </div>
-                                <span>$1102</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="customCheck1" checked="">
-                                    <label class="form-check-label" for="customCheck1">1 Stop (79)</label>
-                                </div>
-                                <span>$950</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="customCheck1">
-                                    <label class="form-check-label" for="customCheck1">2+ Stop (177)</label>
-                                </div>
-                                <span>$809</span>
-                            </div>    
-                        </div>
-                        <h5>Departure From Melbourne</h5>
-                        <div class="my-3 d-flex align-items-center gap-2 justify-content-star flex-wrap">
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-sunset pt-1 fs-4"></i>
-                                <div class="py-1">before 6 AM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-sun pt-1 fs-4"></i>
-                                <div class="py-1">6 AM - 12 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-cloud-sun pt-1 fs-4"></i>
-                                <div class="py-1">12 PM - 6 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class=" uil-cloud-moon pt-1 fs-4"></i>
-                                <div class="py-1">After 6 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                        </div>
-                        <h5>Arrival at Ahmedabad</h5>
-                        <div class="mt-3 d-flex align-items-center gap-2 justify-content-star flex-wrap">
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-sunset pt-1 fs-4"></i>
-                                <div class="py-1">before 6 AM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-sun pt-1 fs-4"></i>
-                                <div class="py-1">6 AM - 12 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class="uil-cloud-sun pt-1 fs-4"></i>
-                                <div class="py-1">12 PM - 6 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                            <div class="filtertimeslot badge badge-outline-secondary fw-normal">
-                                <i class=" uil-cloud-moon pt-1 fs-4"></i>
-                                <div class="py-1">After 6 PM</div>
-                                <p class="mb-1 fw-bold">$1010</p>
-                            </div>
-                        </div>    
-                    </div>
-                </div>
-            </div>
+            
             <div class="card custom-collapse">
                 <div class="card-body">
                     <div class="card-widgets">
@@ -451,7 +372,7 @@ module.exports = {
         </div>
     </div>
 
-<div class="booking_panel-bottom d-none sticky-bottom justify-content-between row text-bg-light p-2 border-top border-2" id="selected_product" >
+<div class="booking_panel-bottom d-none sticky-bottom justify-content-between row bg-primary-lighten align-items-center text-bg-light p-2 border-top border-primary border-3" id="selected_product" >
     <div class="left-info col-md-9 d-flex flex-wrap row-gap-4 selected_product_holder">
         <!--
         <div class="flight__detail-inner px-4 flex-fill">
@@ -543,52 +464,52 @@ module.exports = {
                 <div class="col-12 col-md-9">
                     
                     <div class="text-end pe-1 mb-1"><a class="link-primary text-decoration-underline link-offset-2" href="search.html"><i class="mdi mdi-chevron-left"></i>Back to Search</a></div>
-                    
                     <div class="selected_flight-info " id="selected_flight-info" ></div>
                     
                     <div class="traveller-info-sec">
                         <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Information</h4>
+                        <form action="/${req?.params?.interface}/ndcSIA" method="post" id="create-pnr-form" >   
                         <div class="card">
                             <div class="card-body">
-                                <form action="/${req?.params?.interface}/ndcSIA" method="post" id="create-pnr-form" > 
-                                    <div class="passangerDetailSec" id="pax-info" >
-                                        
-                                        <div class="row">    
-                                            <div class="col-12">
-                                                <div class="border-bottom mb-2 pb-2 d-flex justify-content-between align-items-center">
-                                                    <h5 class="my-0 ">Passenger Details: </h5>
-                                                    <a class="nameformat text-decoration-underline link-offset-2" type="button" data-bs-placement="left" tabindex="0" data-bs-toggle="popover" data-bs-content="check name format" data-bs-title="name format">Name Format info<i class="mdi mdi-information-outline ps-1"></i></a>
-                                                </div>
+                                
+                                <div class="passangerDetailSec" id="pax-info" >
+                                    
+                                    <div class="row">    
+                                        <div class="col-12">
+                                            <div class="border-bottom mb-2 pb-2 d-flex justify-content-between align-items-center">
+                                                <h5 class="my-0 ">Passenger Details: </h5>
+                                                <a class="nameformat text-decoration-underline link-offset-2" type="button" data-bs-placement="left" tabindex="0" data-bs-toggle="popover" data-bs-content="check name format" data-bs-title="name format">Name Format info<i class="mdi mdi-information-outline ps-1"></i></a>
                                             </div>
                                         </div>
-                                       
-                                    </div>  
-                                    <div class="passangerContactDetail">
-                                        <div class="row d-flex justify-content-between align-items-start">
-                                            <div class="col-12">
-                                                <h5 class="border-bottom mb-2 pb-2">Contact information:</h5>
-                                                <div class="alert alert-info font-14" role="alert">
-                                                    <i class="ri-information-line me-1 align-middle"></i><strong>Note:</strong> All communication related to booking
-                                                    will be sent to this email address and mobile.
-                                                </div>
-                                            </div>  
-                                        </div>
-                                        <div class="row">                                                                      
-                                            <div class="col-12">
-                                                <div class="row">
-                                                    <div class="col-12 col-md-2 mb-2 mb-md-0">
+                                    </div>
+                                </div>
+
+                                <div class="passangerContactDetail">
+                                    <div class="row d-flex justify-content-between align-items-start">
+                                        <div class="col-12">
+                                            <h5 class="border-bottom mb-2 pb-2">Contact information:</h5>
+                                            <div class="alert alert-info font-14" role="alert">
+                                                <i class="ri-information-line me-1 align-middle"></i><strong>Note:</strong> All communication related to booking
+                                                will be sent to this email address and mobile.
+                                            </div>
+                                        </div>  
+                                    </div>
+                                    <div class="row">                                                                      
+                                        <div class="col-12">
+                                            <div class="row">
+                                                <div class="col-12 col-md-2 mb-2 mb-md-0">
                                                     <div class="form-floating">
                                                         <input type="number" class="form-control" placeholder="" required="" name="contact[countrycode]" value="+61" > 
                                                         <label for="">Country Code</label>
                                                     </div>                                                                  
-                                                    </div> 
-                                                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                                </div> 
+                                                <div class="col-12 col-md-4 mb-2 mb-md-0">
                                                     <div class="form-floating">
                                                         <input type="number" class="form-control" placeholder="" required="" name="contact[phone]">
                                                         <label for="">Mobile No</label>
                                                     </div>                                                               
-                                                    </div>
-                                                    <div class="col-12 col-md-4 mb-2 mb-md-0">                         
+                                                </div>
+                                                <div class="col-12 col-md-4 mb-2 mb-md-0">                         
                                                     <div class="form-floating">
                                                         <input type="email" class="form-control" placeholder="" id="email" required="" name="contact[email]">
                                                         <label for="email">Email</label>
@@ -597,11 +518,14 @@ module.exports = {
                                             </div>
                                         </div>
                                     </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary pull-end" >Create PNR</button>
-                                </form>
+                                </div>
+                                
                             </div>
                         </div>
+                        <div class="action-div mt-2 ms-auto text-end">
+                            <button type="submit" class="btn btn-primary">Create PNR</button>
+                        </div>
+                        </form>
                     </div>
                 </div>
 
@@ -614,6 +538,7 @@ module.exports = {
                                 <li><i class="mdi mdi-chevron-right mdi-18px pe-1"></i><a type="button" class="text-decoration-underline link-offset-2" data-bs-toggle="modal" data-bs-target="#farerules">Full fare rules and conditions</a></li>
                             </ul>
                         </div>
+                        <!--
                         <div class="share-ticket-block">
                             <span><i class="uil uil-share-alt"></i> Share Itinerary:</span>
                             <a type="button" class="px-1 align-middle shareItinerary" data-bs-toggle="popover" data-bs-placement="bottom" tabindex="0" data-bs-content="Share Itinerary" data-bs-title="Share Itinerary"><i class="mdi mdi-message-text-outline mdi-18px"></i></a>
@@ -623,6 +548,7 @@ module.exports = {
                         <div class="action-div mt-2">
                             <button type="button" class="btn btn-primary w-100" onClick="document.getElementById('create-pnr-form').submit()">Create PNR</button>
                         </div>
+                        -->
                     </div>
                 </div>
                 <!-- End Price Info -->
@@ -630,7 +556,7 @@ module.exports = {
             </div>
             <!-- end Content -->
         </div>
-        <button class="btn btn-primary" onClick="javascript:fetchOfferPrice('${req.query.id}')">fetchOfferPrice</button>
+      
         <!-- Flight detail popup -->
         <div class="offcanvas offcanvas-end" tabindex="-1" id="flightDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
             <div class="offcanvas-header pb-0">
@@ -671,9 +597,9 @@ module.exports = {
         return res.json(tp_res)
     },
     ndcSIA: async (req, res, next) => {
+
         const SIA = require('./_/providers/SIA/index.js')
-        const search_param = req.body;
-        var tp_res = await SIA[`${search_param.do}`](req, res, next);
+        const tp_res = await SIA[`${req?.body?.do || req?.query?.do || 'index'}`](req, res, next);
         return res.json(tp_res)
     }
 }

@@ -21,7 +21,7 @@ router.get('/', async function (req, res, next) {
     ${req.session?.postBackMsg?.h}
     <button type="button" class="btn-close btn-sm " data-bs-dismiss="alert" aria-label="Close"></button>
   </div>`;
-  delete req.session.postBackMsg
+    delete req.session.postBackMsg
   }
 
 
@@ -83,7 +83,7 @@ router.get('/', async function (req, res, next) {
                   
                   <div class="card-body p-4">
                       ${_postBackMsg}
-                      ${JSON.stringify(req.session?.postBackMsg)??''}
+                      ${JSON.stringify(req.session?.postBackMsg) ?? ''}
                       <form action="" method="POST" class="">
                           <div class="mb-3">
                               <label for="companyname" class="form-label">Company</label>
@@ -152,13 +152,20 @@ router.post('/', async function (req, res, next) {
     const _user = await mongodbClient.db('Airlink').collection('users').findOne({ agency: new ObjectId(agency), email: email, password: password });
     console.log('_user', _user)
     if (_user != null) {
+
       req.session.auth = _user;
-      const _interface = await mongodbClient.db('Airlink').collection('interface').find({agency:_user.agency}, {projection: { agency: 0 },}).toArray();
+
+      const _agency = await mongodbClient.db('Airlink').collection('agency').findOne({ _id: new ObjectId(agency), status: `Active` });
+      console.log('_agency', { _id: new ObjectId(agency), status: `Active` }, _agency)
+      req.session.agency = _agency;
+
+      const _interface = await mongodbClient.db('Airlink').collection('interface').find({ type: 'nav', agency: _user.agency }, { projection: { agency: 0 }, }).sort({ disp_seq: 1 }).toArray();
       req.session.interface = _interface
+
       console.log(_interface);
-      if(_interface.length > 0 ){
+      if (_interface.length > 0) {
         return res.redirect(`/${_interface[0]._id}`)
-      }else{
+      } else {
         // not authrised
         return res.send('No interfaces defined')
       }

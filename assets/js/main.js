@@ -100,7 +100,7 @@ $(function () {
         $(paxInputModal).find('.modal-body').html(str)
     })
 
-    
+
 });
 
 
@@ -166,6 +166,7 @@ jQuery(document).ready(function () {
         }
     });
 });
+
 
 $(document).ready(function () {
     $(".seatsAircraftSeat").popover({
@@ -330,7 +331,7 @@ function renderGroupedNavigationMenu(data) {
             str += `
                 <li>
                     <a href="/${item._id}" class="">
-                        <span>${item.path}<span>
+                        <span>${item.disp_name}<span>
                     </a>
                 </li>`
         })

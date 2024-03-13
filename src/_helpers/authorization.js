@@ -9,6 +9,8 @@ module.exports = {
         
         if (validator.isEmail(req?.session?.auth?.email || '')) {
             if(req.session.auth?.agency){
+                process.env.TZ = req.session.agency['timezone'] || `UTC`
+                console.log('timezone', req.session.agency['timezone'], ' | ', (new Date).toString())
                 next()
             }else{
                 return res.redirect(`/myaccounts`)
