@@ -1,3 +1,4 @@
+
 var DataLists = {}
 var OriginDestIDs = {}
 var legGroup = {}
@@ -49,7 +50,11 @@ const sia_timediff = (a, b) => {
 
     return `${h}h ${m}m`
 }
+
 const sia_date = (i) => (new Date(i)).toDateString()
+
+
+
 function sia_parse_to_flight_display(d) {
 
     DataLists = {}
@@ -89,11 +94,10 @@ function sia_parse_to_flight_display(d) {
                 legGroup[s.toString()].mPrice = (legGroup[s.toString()].mPrice < mPrice) ? legGroup[s.toString()].mPrice : mPrice
                 legGroup[s.toString()].OfferIDs?.push(o.OfferID)
             } else {
-                legGroup[s.toString()] = { mPrice: mPrice, OfferIDs: [o.OfferID] }
+                legGroup[s.toString()] = { FLTs: s.toString(), mPrice: mPrice, OfferIDs: [o.OfferID] }
             }
 
         })
-        //console.log('legGroup', legGroup)
 
         $("#flight_list_holder").html(` `)
         if (Object.keys(legGroup)?.length > 0) {
@@ -109,13 +113,14 @@ function sia_parse_to_flight_display(d) {
             </div>`));
 
             $.each(legGroup, (k, v) => {
+                //console.log('K,v', k, v)
                 $(`#${ShoppingResponseID}`).append(`
                     <li class="list-item accordion-item border-0 mb-2">
                         <div class="container list-item-inner border">
                             <div class="row list-item-main shadow">
                                 <div class="col-12 col-md-10 col-xl-10 col-lg-10 p-2">
                                     <div class="row row-gap-2">
-                                        ${sia_buildFTL(k)}
+                                        ${sia_buildFTL(v.FLTs)}
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-3 col-xl-2 col-lg-2 px-0 text-center border-start">
@@ -127,10 +132,10 @@ function sia_parse_to_flight_display(d) {
                                                     $${amount_format(v.mPrice)}
                                                 </h4>
                                                 <div class="owd-amount-price-view mt-1"> 
-                                                    <a class="link-primary text-decoration-underline link-offset-1 fs-6 fw-semibold" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightDetailOffcanvas" aria-controls="offcanvasRight" FLTs=${k} provider="ndcSIA" >Flight Details</a>
+                                                    <a class="link-primary text-decoration-underline link-offset-1 fs-6 fw-semibold" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightDetailOffcanvas" aria-controls="offcanvasRight" FLTs=${v.FLTs} provider="ndcSIA" >Flight Details</a>
                                                 </div>
                                                 <div class="owd-amount-price-view"> 
-                                                    <a class="view-btn link-secondary text-decoration-underline link-offset-1 fs-6 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#${k}_ff" aria-expanded="true"><span class="view-detail">View</span><span class="hide-detail">Hide</span> ${v.OfferIDs?.length || ''} Offers</a>
+                                                    <a class="view-btn link-secondary text-decoration-underline link-offset-1 fs-6 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#${v.FLTs}_ff" aria-expanded="true"><span class="view-detail">View</span><span class="hide-detail">Hide</span> ${v.OfferIDs?.length || ''} Offers</a>
                                                 </div>
                                             </span>     
                                         </span>
@@ -139,7 +144,7 @@ function sia_parse_to_flight_display(d) {
                             </div>
                         </div>
                             <!-- Starts fare Details Html  -->
-                            <div id="${k}_ff" class="accordion-collapse show-detail mt-2 collapse" data-bs-parent="#departFlightList">
+                            <div id="${v.FLTs}_ff" class="accordion-collapse show-detail mt-2 collapse" data-bs-parent="#departFlightList">
                             <!-- Depart flight details section -->
                                 <div class="f-detail-sec depart-flight-info">
                                     <div class="row m-auto flight-header">
@@ -188,7 +193,8 @@ function sia_parse_to_flight_display(d) {
                                                 </div>
                                             </div>  
                                             <div class="d-flex position-relative flight_fare_selection flex-grow-1" >
-                                                ${sia_bindFF(k)}
+                                            ${v.FLTs}
+                                                ${sia_bindFF(v.FLTs)}
                                             </div>
                                         </div>    
                                     </div>
@@ -218,23 +224,18 @@ function sia_buld_fareselectedui(button) {
     // parsing JourneyOverview
     s += `
     <div class="left-info col-md-9 d-flex flex-wrap row-gap-4" >`
-
+    console.log("Offer.JourneyOverview.JourneyPriceClass", Offer.JourneyOverview.JourneyPriceClass)
     var FLTs = []
-    if (Offer.JourneyOverview.JourneyPriceClass?.length > 0) {
-        Offer.JourneyOverview.JourneyPriceClass.forEach((i) => {
-            FLTs.push(i.PaxJourneyRefID)
-        })
-    } else {
-        FLTs.push(Offer.JourneyOverview.JourneyPriceClass.PaxJourneyRefID)
-    }
 
+    const JourneyPriceClass = convert2Array(Offer.JourneyOverview.JourneyPriceClass)
 
-    FLTs.forEach((FLT_ID) => {
-        const FLT = DataLists[FLT_ID]
-
+    JourneyPriceClass.forEach((_JourneyPriceClass) => {
+        const FLT = DataLists[_JourneyPriceClass.PaxJourneyRefID]
+        const FF = DataLists[_JourneyPriceClass.PriceClassRefID]
         var journyStart
         var journyEnd
-        $.each(FLT.PaxSegmentRefID, (n, SEGid) => {
+
+        $.each(convert2Array(FLT.PaxSegmentRefID), (n, SEGid) => {
             const SEG = DataLists[SEGid]
             if (n == 0) {
                 journyStart = [SEG.Dep.IATA_LocationCode, SEG.Dep.AircraftScheduledDateTime]
@@ -292,44 +293,44 @@ function sia_buld_fareselectedui(button) {
 
 function sia_buildFTL(i) {
     var str = ``
-
+    //console.log('i', i)
     const FLTs = i.split(',')
 
     $.each(FLTs, (i, FLTid) => {
+
         const FLT = DataLists[FLTid]
 
         var segStart //= FlightSegment.length
         var segMiddle = ''// = FlightSegment.length
-        var segEnd //= FlightSegment.length
+        var segEnd = ''//= FlightSegment.length
         var stops = FLT.PaxSegmentRefID?.length || 0
 
-        if (FLT.PaxSegmentRefID?.length > 0) {
-            $.each(FLT.PaxSegmentRefID, (n, SEGid) => {
-                const SEG = DataLists[SEGid]
-                //console.log(SEG)
-                if (n == 0) {
-                    segStart = `
+        const PaxSegmentRefID = convert2Array(FLT?.PaxSegmentRefID)
+
+        $.each(PaxSegmentRefID, (n, SEGid) => {
+            const SEG = DataLists[SEGid]
+            //console.log(SEG)
+            if (n == 0) {
+                segStart = `
                     <div class="fw-semibold text-uppercase fs-4 text-danger">${SEG.Dep.IATA_LocationCode} <span>${(SEG.Dep.AircraftScheduledDateTime).substr(11, 5)}</span></div>
                     <div class="fs-6">${sia_date(SEG.Dep.AircraftScheduledDateTime)}</div> 
                     <div class="fs-5 text-black d-none">${airportCity(SEG.Dep.IATA_LocationCode)}</div>
                     `
-                }
-                if (n > 0) {
-                    segMiddle += `
+            }
+            if (n > 0) {
+                segMiddle += `
                     <span class="stops text-center px-1"><i class="mdi mdi-rhombus-medium"></i><small class="d-block fw-bold">${SEG.Dep.IATA_LocationCode}</small></span>
                     <div class="graphics-line-horizontal"></div>`
-                }
-                if (n == (FLT.PaxSegmentRefID?.length - 1)) {
-                    segEnd = `
+            }
+            if ((n == (FLT.PaxSegmentRefID?.length - 1)) || !FLT.hasOwnProperty('length')) {
+                segEnd = `
                     <div class="fw-semibold text-uppercase fs-4 text-danger">${SEG.Arrival.IATA_LocationCode} <span>${(SEG.Arrival.AircraftScheduledDateTime).substr(11, 5)}</span></div>
                     <div class="fs-6">${sia_date(SEG.Arrival.AircraftScheduledDateTime)}</div>
                     <div class="fs-5 text-black d-none">${airportCity(SEG.Arrival.IATA_LocationCode)}</div>
                 `
-                }
-            })
-        } else {
+            }
+        })
 
-        }
 
 
         str += `
@@ -385,6 +386,7 @@ function sia_bindFF(i) {
                         </span>
                         $ ${amount_format(Offer.OfferItem.Price.TotalAmount)}
                     </h4> 
+                    <div style="overflow: auto" >${JSON.stringify(Offer?.OfferItem?.FareDetail)}</div>
                     <a tabindex="0" href="#" class="btn btn-outline-primary btn-sm select_fare x_sia_offer_select" OfferID=${Offer.OfferID} provider="ndcSIA" >Select</a>
                 </div>
             </div> 
@@ -431,12 +433,15 @@ function sia_buildFlightDetails(i) {
     $.each(FLTs, (i, FLTid) => {
         const FLT = DataLists[FLTid]
         // parsing 
-        if (FLT.PaxSegmentRefID?.length > 0) {
+
+        const PaxSegmentRefID = convert2Array(FLT?.PaxSegmentRefID)
+
+        if (PaxSegmentRefID?.length > 0) {
             var journy = ``
             var journyStart
             var journyEnd
             var prev_Arrival = ``
-            $.each(FLT.PaxSegmentRefID, (n, SEGid) => {
+            $.each(PaxSegmentRefID, (n, SEGid) => {
                 const SEG = DataLists[SEGid]
 
                 if (n == 0) {
@@ -575,60 +580,73 @@ $('body').on('submit', '#SiadoPrice', function (event) {
 })
 
 function sia_parseDataList(_dList) {
+    if (_dList) {
 
-    if (_dList?.['BaggageAllowanceList']?.['BaggageAllowance'].hasOwnProperty('length')) {
-        _dList?.['BaggageAllowanceList']?.['BaggageAllowance']?.forEach((a) => DataLists[a['BaggageAllowanceID']] = a)
-    } else {
-        DataLists[_dList?.['BaggageAllowanceList']?.['BaggageAllowance']?.['BaggageAllowanceID']] = _dList?.['BaggageAllowanceList']?.['BaggageAllowance']
-    }
-
-    if (_dList?.['OriginDestList']?.['OriginDest'].hasOwnProperty('length')) {
-        _dList?.['OriginDestList']?.['OriginDest']?.forEach((a) => {
-            DataLists[a['OriginDestID']] = a
-            OriginDestIDs[a['OriginDestID']] = a
+        convert2Array(_dList?.['BaggageAllowanceList']?.['BaggageAllowance'])?.forEach((o) => DataLists[o['BaggageAllowanceID']] = o)
+        convert2Array(_dList?.['OriginDestList']?.['OriginDest'])?.forEach((o) => DataLists[o['OriginDestID']] = o)
+        convert2Array(_dList?.['PaxJourneyList']?.['PaxJourney'])?.forEach((o) => DataLists[o['PaxJourneyID']] = o)
+        convert2Array(_dList?.['PaxSegmentList']?.['PaxSegment'])?.forEach((o) => DataLists[o['PaxSegmentID']] = o)
+        convert2Array(_dList?.['PenaltyList']?.['Penalty'])?.forEach((o) => DataLists[o['PenaltyID']] = o)
+        convert2Array(_dList?.['PriceClassList']?.['PriceClass'])?.forEach((o) => DataLists[o['PriceClassID']] = o)
+        convert2Array(_dList?.['ServiceDefinitionList']?.['ServiceDefinition'])?.forEach((o) => DataLists[o['ServiceDefinitionID']] = o)
+        convert2Array(_dList?.['PaxList']?.['Pax']).forEach((o) => {
+            DataLists[o['PaxID']] = o
+            paxList[o['PaxID']] = o
         })
-    } else {
-        DataLists[_dList?.['OriginDestList']?.['OriginDest']?.['OriginDestID']] = _dList?.['OriginDestList']?.['OriginDest']
-        OriginDestIDs[_dList?.['OriginDestList']?.['OriginDest']?.['OriginDestID']] = _dList?.['OriginDestList']?.['OriginDest']
+        /*
+        if (_dList?.['BaggageAllowanceList']?.['BaggageAllowance'].hasOwnProperty('length')) {
+            _dList?.['BaggageAllowanceList']?.['BaggageAllowance']?.forEach((a) => DataLists[a['BaggageAllowanceID']] = a)
+        } else {
+            DataLists[_dList?.['BaggageAllowanceList']?.['BaggageAllowance']?.['BaggageAllowanceID']] = _dList?.['BaggageAllowanceList']?.['BaggageAllowance']
+        }
+        
+        if (_dList?.['OriginDestList']?.['OriginDest'].hasOwnProperty('length')) {
+            _dList?.['OriginDestList']?.['OriginDest']?.forEach((a) => {
+                DataLists[a['OriginDestID']] = a
+                OriginDestIDs[a['OriginDestID']] = a
+            })
+        } else {
+            DataLists[_dList?.['OriginDestList']?.['OriginDest']?.['OriginDestID']] = _dList?.['OriginDestList']?.['OriginDest']
+            OriginDestIDs[_dList?.['OriginDestList']?.['OriginDest']?.['OriginDestID']] = _dList?.['OriginDestList']?.['OriginDest']
+        }
+       
+        if (_dList?.['PaxJourneyList']?.['PaxJourney'].hasOwnProperty('length')) {
+            _dList?.['PaxJourneyList']?.['PaxJourney']?.forEach((a) => DataLists[a['PaxJourneyID']] = a)
+        } else {
+            DataLists[_dList?.['PaxJourneyList']?.['PaxJourney']?.['PaxJourneyID']] = _dList?.['PaxJourneyList']?.['PaxJourney']
+        }
+    
+        if (_dList?.['PaxList']?.['Pax'].hasOwnProperty('length')) {
+            _dList?.['PaxList']?.['Pax']?.forEach((a) => {
+                DataLists[a['PaxID']] = a
+                paxList[a['PaxID']] = a
+            })
+        } else {
+            DataLists[_dList?.['PaxList']?.['Pax']?.['PaxID']] = _dList?.['PaxList']?.['Pax']
+            paxList[_dList?.['PaxList']?.['Pax']?.['PaxID']] = _dList?.['PaxList']?.['Pax']
+        }
+    
+        _dList?.['PaxSegmentList']?.['PaxSegment']?.forEach((a) => DataLists[a['PaxSegmentID']] = a)
+        _dList?.['PenaltyList']?.['Penalty']?.forEach((a) => DataLists[a['PenaltyID']] = a)
+
+        if (_dList?.['PriceClassList']?.['PriceClass'].hasOwnProperty('length')) {
+            _dList?.['PriceClassList']?.['PriceClass']?.forEach((a) => DataLists[a['PriceClassID']] = a)
+        } else {
+            DataLists[_dList?.['PriceClassList']?.['PriceClass']?.['PriceClassID']] = _dList?.['PriceClassList']?.['PriceClass']
+        }
+
+        if (_dList?.['ServiceDefinitionList']?.['ServiceDefinition'].hasOwnProperty('length')) {
+            _dList?.['ServiceDefinitionList']?.['ServiceDefinition']?.forEach((a) => DataLists[a['ServiceDefinitionID']] = a)
+        } else {
+            DataLists[_dList?.['ServiceDefinitionList']?.['ServiceDefinition']?.['ServiceDefinitionID']] = _dList?.['ServiceDefinitionList']?.['ServiceDefinition']
+        }
+*/
     }
-
-    if (_dList?.['PaxJourneyList']?.['PaxJourney'].hasOwnProperty('length')) {
-        _dList?.['PaxJourneyList']?.['PaxJourney']?.forEach((a) => DataLists[a['PaxJourneyID']] = a)
-    } else {
-        DataLists[_dList?.['PaxJourneyList']?.['PaxJourney']?.['PaxJourneyID']] = _dList?.['PaxJourneyList']?.['PaxJourney']
-    }
-
-    if (_dList?.['PaxList']?.['Pax'].hasOwnProperty('length')) {
-        _dList?.['PaxList']?.['Pax']?.forEach((a) => {
-            DataLists[a['PaxID']] = a
-            paxList[a['PaxID']] = a
-        })
-    } else {
-        DataLists[_dList?.['PaxList']?.['Pax']?.['PaxID']] = _dList?.['PaxList']?.['Pax']
-        paxList[_dList?.['PaxList']?.['Pax']?.['PaxID']] = _dList?.['PaxList']?.['Pax']
-    }
-
-    _dList?.['PaxSegmentList']?.['PaxSegment']?.forEach((a) => DataLists[a['PaxSegmentID']] = a)
-    _dList?.['PenaltyList']?.['Penalty']?.forEach((a) => DataLists[a['PenaltyID']] = a)
-
-    if (_dList?.['PriceClassList']?.['PriceClass'].hasOwnProperty('length')) {
-        _dList?.['PriceClassList']?.['PriceClass']?.forEach((a) => DataLists[a['PriceClassID']] = a)
-    } else {
-        DataLists[_dList?.['PriceClassList']?.['PriceClass']?.['PriceClassID']] = _dList?.['PriceClassList']?.['PriceClass']
-    }
-
-    if (_dList?.['ServiceDefinitionList']?.['ServiceDefinition'].hasOwnProperty('length')) {
-        _dList?.['ServiceDefinitionList']?.['ServiceDefinition']?.forEach((a) => DataLists[a['ServiceDefinitionID']] = a)
-    } else {
-        DataLists[_dList?.['ServiceDefinitionList']?.['ServiceDefinition']?.['ServiceDefinitionID']] = _dList?.['ServiceDefinitionList']?.['ServiceDefinition']
-    }
-
-
     console.log('DataLists', DataLists)
 }
 
 function parseFilter() {
-
+    console.log('OriginDestIDs', OriginDestIDs)
     for (const [key, value] of Object.entries(OriginDestIDs)) {
         var stops = {}
         value?.PaxJourneyRefID?.forEach((FLT) => {
@@ -710,8 +728,169 @@ function fetchOfferPrice(id) {
                     </div>
                 </div>
             </div>
-            
             `))
+
+
+            var str = ''
+            var FareDetail = convert2Array(selectedOffer?.OfferItem?.FareDetail)
+
+            if (FareDetail.length > 0) {
+                const PAXID2str = (PassengerRefs) => {
+                    var arr = []
+                    console.log('PassengerRefs', PassengerRefs)
+                    const PaxIds = PassengerRefs?.split(' ')
+                    PaxIds.forEach((PaxID) => {
+                        arr.push(DataLists[PaxID]?.['PTC'])
+                    })
+                    return arr.toString()
+                }
+
+                FareDetail.forEach((_FareDetail, FareDetailNumId) => {
+                    console.log('_FareDetail', _FareDetail)
+                    str += `
+                    <tr>
+                        <td>${PAXID2str(_FareDetail.PassengerRefs)}</td>
+                        <td>${_FareDetail.Price?.BaseAmount?.['#text']}</td>
+                        <td>${_FareDetail.Price?.Taxes?.Total?.['#text']}</td>
+                        <td>${_FareDetail.Price?.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#FareRule_${FareDetailNumId}" aria-expanded="false" aria-controls="collapseOne">
+                                Fare/Service <i class="ps-1 mdi mdi-chevron-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    `
+
+
+                    // tab
+                    var tabs = `
+                    <ul class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden border-bottom-0" style="margin-bottom:-1px" id="fareruleTab" role="tablist">`
+                    var tabBody = `
+                    <div class="tab-content px-3 bg-secondary-subtle border" id="myTabContent">`
+                    var active = `active`
+
+                    var OtherDetails = `<div class="py-2">`
+
+
+                    _FareDetail.FareComponent?.forEach((FareComponent) => {
+
+                        tabs += `
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link d-flex align-items-center ${active}"  type="button" data-bs-toggle="tab" data-bs-target="#a_${FareDetailNumId}_${FareComponent.SegmentRefs}" aria-controls="farerulede_flight-tab-pane" aria-expanded="false">
+                                <div class="airline_ico">
+                                    <i class="mdi mdi-airplane fs-3"></i>
+                                </div>
+                                <div class="ms-2 segment_detail text-start">
+                                    <div class="fw-bold">${DataLists[FareComponent.SegmentRefs].Dep.IATA_LocationCode} - ${DataLists[FareComponent.SegmentRefs].Arrival.IATA_LocationCode}</div>
+                                </div>
+                            </a>
+                        </li>`
+
+                        tabBody += `
+                        <div class="tab-pane fade ${active ? `show active` : ``}" id="a_${FareDetailNumId}_${FareComponent.SegmentRefs}" role="tabpanel"  tabindex="0">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3 border-bottom py-2">Fare Type</dt>
+                                <dd class="col-sm-9 border-bottom py-2 mb-0">${DataLists[FareComponent.PriceClassRef]?.Name}</dd>
+                                        
+                                <dt class="col-sm-3 border-bottom py-2">Cabin Type</dt>
+                                <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.CabinType?.CabinTypeName['#text']}</dd>
+                                
+                                <dt class="col-sm-3 border-bottom py-2">Fare Basis Code</dt>
+                                <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.FareBasisCode?.Code}</dd>`
+
+                        // fare rules Penalty
+                        const Penalty = FareComponent.FareRules?.Penalty
+                        const PenaltyRefs = FareComponent?.FareRules?.Penalty?.['@_refs']?.split(" ")
+                        console.log('Penalty>', Penalty)
+                        if (PenaltyRefs.length > 0) {
+
+
+                            var rmk = ''
+
+                            PenaltyRefs.forEach((PenaltyRef) => {
+                                if (DataLists.hasOwnProperty(PenaltyRef)) {
+                                    const PenaltyDetail = DataLists[PenaltyRef]
+                                    rmk += parseFloat(PenaltyDetail.PenaltyAmount?.['#text']) > 0 ? `<p class="" ><b>${(PenaltyDetail.ChangeFeeInd ? 'Change' : (PenaltyDetail.CancelFeeInd ? 'Cancel' : '--'))}</b> - <span class="text-decoration-underline link-offset-1 fw-semibold" >${PenaltyDetail.AppCode} - ${PenaltyDetail.PenaltyAmount['#text']} ${PenaltyDetail.PenaltyAmount['@_CurCode']}</span> - ${PenaltyDetail?.DescText}</p>` : ``
+                                }
+                            })
+                            tabBody += rmk.trim() != '' ? `<dt class="col-sm-3 border-bottom py-2">Penalty Amount </dt>
+                                <dd class="col-sm-9 border-bottom py-2 mb-0">${rmk}</dd>` : ``
+                        }
+
+
+                        tabBody += `        
+                        </dl>
+                    </div>`
+                        active = ``
+                    })
+                    tabs += `
+                    </ul>`
+
+
+                    const Price = _FareDetail.Price || false
+                    if (Price) {
+                        OtherDetails += `<div class="fare-breakage" > BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b></div><b>Tax Breakdown: </b>`
+                        Price.Taxes?.Breakdown?.Tax.forEach((Tax) => {
+                            OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']} | `
+                        })
+                    }
+
+
+                    OtherDetails += `
+                    <p class="pt-2 text-danger mb-0">`
+                    _FareDetail?.Remarks?.Remark.forEach((Remark) => {
+                        OtherDetails += `${Remark}</br>`
+                    })
+                    OtherDetails += `
+                    </p>`
+
+                    tabBody += `
+                    </div>`
+
+                    OtherDetails += `
+                    </div>`
+
+                    str += `
+                    <tr class="show-farerul" >
+                        <td colspan="6" class="accordion-collapse collapse" id="FareRule_${FareDetailNumId}"  data-bs-parent="#PaxList-info" >
+                            <div class="accordion-body"> 
+                                <div class="modal-body">
+                                    ${tabs}
+                                    ${tabBody}
+                                    ${OtherDetails}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`
+
+
+                })
+
+
+                $("#selected_Fare-Detail").html(`
+                <div class="traveller-info-sec" >
+                <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Fare Detail</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-centered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>PAX Type</th>
+                                    <th>BaseAmount</th>
+                                    <th>TotalTaxAmount</th>
+                                    <th>TotalAmount</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${str}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+                `);
+            }
 
             // parsing price-info
             const Price = selectedOffer.OfferItem?.Price
@@ -858,12 +1037,15 @@ function sia_service_to_string(ServiceDefinitionRefID) {
     return s
 }
 
-function build_PNRview(d) {
+function build_PNRview(x) {
+    console.log(x);
+    var  user_access = x.access
+    var d = x.pnrdetails
+
     // parsing data for pnr view
-    const rsJson = JSON.parse(d?.OrderRetrieve?.rsJson)
-    console.log(rsJson);
-    const Response = rsJson?.['Envelope']?.['Body']?.['OrderViewRS']?.['Response']
-    console.log('Response', d, Response)
+    //const rsJson = JSON.parse(d?.OrderRetrieve?.rsJson)
+    const Response = d?.OR_json?.['Envelope']?.['Body']?.['OrderViewRS']?.['Response']
+    console.log('Response', d?.OrderRetrieve?.rsJson, Response)
     const Order = Response?.Order
 
     sia_parseDataList(Response?.['DataLists'])
@@ -871,22 +1053,23 @@ function build_PNRview(d) {
 
 
 
-    $("#BookingRef-info").html(`PNR: ${Order.OrderID}`)
+    $("#BookingRef-info").html(`
+        PNR: ${Order.OrderID}   
+        <form class="d-inline-block" >
+            <input type="hidden" name="do" value="" /> 
+            <button type="button" class="btn-primary btn btn-sm ms-3"><i class="mdi mdi-refresh pe-1"></i>Retrieve PNR</button>
+        </form>
+        `)
 
     var str = ``
-    var PaxJourneyList = []
-    if (Response.DataLists?.PaxJourneyList?.PaxJourney?.length) {
-        $.each(Response.DataLists?.PaxJourneyList?.PaxJourney, (n, e) => { PaxJourneyList.push(e) })
+    var PaxJourneyList = convert2Array(Response.DataLists?.PaxJourneyList?.PaxJourney)
 
-    } else if (Response.DataLists?.PaxJourneyList?.PaxJourney) {
-        PaxJourneyList.push(Response.DataLists?.PaxJourneyList?.PaxJourney)
-    }
     var FLTs = []
     $.each(PaxJourneyList, (i, PaxJourney) => {
         FLTs.push(PaxJourney.PaxJourneyID)
-        var segStart //= FlightSegment.length
+        var segStart = ''//= FlightSegment.length
         var segMiddle = ''// = FlightSegment.length
-        var segEnd //= FlightSegment.length
+        var segEnd = '' //= FlightSegment.length
         var stops = PaxJourney.PaxSegmentRefID?.length || 0
 
         if (PaxJourney.PaxSegmentRefID?.length > 0) {
@@ -975,13 +1158,8 @@ function build_PNRview(d) {
     `)
 
     str = ``
-    var PaxList = []
-    if (Response.DataLists?.PaxList?.Pax?.length) {
-        $.each(Response.DataLists?.PaxList?.Pax, (n, e) => { PaxList.push(e) })
-
-    } else if (Response.DataLists?.PaxList?.Pax) {
-        PaxList.push(Response.DataLists?.PaxList?.Pax)
-    }
+    var PaxList = convert2Array(Response.DataLists?.PaxList?.Pax)
+    var FareDetail = convert2Array(Order?.OrderItem?.FareDetail)
 
     $.each(PaxList, (n, Pax) => {
         str += `
@@ -992,23 +1170,24 @@ function build_PNRview(d) {
             <td>${Pax?.Individual?.Surname}</td>
             <td>${Pax?.Individual?.Birthdate}</td>
             <td>
-                <button class="btn btn-link btn-sm accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#FareRule_${Pax.PaxID}" aria-expanded="true" aria-controls="collapseOne">
-                    Fare/Service
+                <button class="btn btn-primary btn-sm align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#FareRule_${Pax.PaxID}" aria-expanded="false" aria-controls="collapseOne">
+                    Fare/Service <i class="ps-1 mdi mdi-chevron-down"></i>
                 </button>
             </td>
         </tr>`
-        const [_FareDetail] = Order.OrderItem.FareDetail.filter((e) => e.PassengerRefs == Pax.PaxID)
+
+        const [_FareDetail] = FareDetail.filter((e) => e.PassengerRefs == Pax.PaxID)
         //parsing price
         if (_FareDetail) {
 
             // tab
             var tabs = `
-            <ul class="nav nav-tabs mb-3 flex-nowrap overflow-x-auto overflow-y-hidden" id="fareruleTab" role="tablist">`
+            <ul class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden border-bottom-0" style="margin-bottom:-1px" id="fareruleTab" role="tablist">`
             var tabBody = `
-            <div class="tab-content px-3" id="myTabContent">`
+            <div class="tab-content px-3 bg-secondary-subtle border" id="myTabContent">`
             var active = `active`
 
-            var OtherDetails = `<div class="border-bottom py-2">`
+            var OtherDetails = `<div class="py-2">`
 
 
             _FareDetail.FareComponent?.forEach((FareComponent) => {
@@ -1058,7 +1237,7 @@ function build_PNRview(d) {
                     Penalty?.Details?.Detail.forEach((Detail) => {
 
                         Detail.Amounts?.Amount?.forEach((Amount) => {
-                            rmk += parseFloat(Amount.CurrencyAmountValue['#text']) > 0 ? `<p class="text-primary" ><b>${Detail.Type}</b> - ${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` : ``
+                            rmk += parseFloat(Amount.CurrencyAmountValue['#text']) > 0 ? `<p class="" ><b>${Detail.Type}</b> - <span class="text-decoration-underline link-offset-1 fw-semibold" >${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']}</span> - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` : ``
                         })
 
                     })
@@ -1077,7 +1256,6 @@ function build_PNRview(d) {
                             } else {
                                 rmk += `<p><b>${Amount.AmountApplication}</b> ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>`
                             }
-
                         })
                         tabBody += `
                             ${rmk}
@@ -1090,8 +1268,8 @@ function build_PNRview(d) {
                         <dd class="col-sm-9 border-bottom py-2 mb-0">Status: ${Service['StatusCode']} ${sia_service_to_string(Service?.ServiceAssociations?.ServiceDefinitionRef?.ServiceDefinitionRefID)}</dd>
                     `
                     })
-
                 }
+
 
 
                 tabBody += `        
@@ -1105,15 +1283,14 @@ function build_PNRview(d) {
 
             const Price = _FareDetail.Price || false
             if (Price) {
-                OtherDetails += `
-                       
-                        BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b><br><b>Tax Breakdown: </b>`
+                OtherDetails += `<div class="fare-breakage" > BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b></div><b>Tax Breakdown: </b>`
                 Price.Taxes?.Breakdown?.Tax.forEach((Tax) => {
-                    OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']} | `
+                    OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']};  `
                 })
             }
+
             OtherDetails += `
-                <p class="col-sm-12 pt-2 text-danger">`
+                <p class="pt-2 text-danger mb-0">`
             _FareDetail?.Remarks?.Remark.forEach((Remark) => {
                 OtherDetails += `${Remark}</br>`
             })
@@ -1127,7 +1304,7 @@ function build_PNRview(d) {
             </div>`
 
             str += `
-            <tr>
+            <tr class="show-farerul" >
                 <td colspan="6" class="accordion-collapse collapse" id="FareRule_${Pax.PaxID}"  data-bs-parent="#PaxList-info" >
                     <div class="accordion-body"> 
                         <div class="modal-body">
@@ -1143,7 +1320,7 @@ function build_PNRview(d) {
     })
 
     $("#PaxList-info").html(`
-            <div class="traveller-info-sec" >
+        <div class="traveller-info-sec" >
             <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Information</h4>
             <div class="card">
                 <div class="card-body">
@@ -1155,7 +1332,7 @@ function build_PNRview(d) {
                                 <th>First Name</th>
                                 <th>Last Name</th>
                                 <th>Date of Birth</th>
-                                <th></th>
+                                <th> - </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1164,54 +1341,100 @@ function build_PNRview(d) {
                     </table>
                 </div>
             </div>
-        </div >
-            `);
-
+        </div>
+        `);
 
     str = ``
-    var ContactInfoList = []
-    if (Response.DataLists?.ContactInfoList?.ContactInfo?.length) {
-        $.each(Response.DataLists?.ContactInfoList?.ContactInfo, (n, e) => {
-            ContactInfoList.push(e)
-        })
+    var TicketDocInfos = convert2Array(Response?.TicketDocInfos?.TicketDocInfo)
+    if (TicketDocInfos.length > 0) {
+        str = ``
 
-    } else if (Response.DataLists?.ContactInfoList?.ContactInfo) {
-        ContactInfoList.push(Response.DataLists?.ContactInfoList?.ContactInfo)
+        $.each(TicketDocInfos, (n, TicketDocInfo) => {
+
+            const doc_pax = DataLists[TicketDocInfo?.PassengerReference]?.Individual?.TitleName + ' ' + DataLists[TicketDocInfo?.PassengerReference]?.Individual?.GivenName + ' ' + DataLists[TicketDocInfo?.PassengerReference]?.Individual?.Surname + '<br>' + DataLists[TicketDocInfo?.PassengerReference]?.PTC
+            var doc_seg = []
+            $.each(convert2Array(TicketDocInfo?.TicketDocument?.CouponInfo), (n1, CouponInfo) => {
+                let s = DataLists[CouponInfo?.CouponReference]?.Dep?.IATA_LocationCode + ' ' + DataLists[CouponInfo?.CouponReference]?.Arrival?.IATA_LocationCode
+
+                if (CouponInfo.hasOwnProperty('AddlBaggageInfo')) {
+                    s += ' ' + CouponInfo.AddlBaggageInfo?.CheckedFree?.['@_MaxBagWght']
+                }
+                doc_seg.push(s)
+            })
+            str += `
+            <tr>
+                <td>${TicketDocInfo?.TicketDocument?.TicketDocNbr || ``}<br>${TicketDocInfo?.TicketDocument?.Type || ``}</td>
+                <td>${doc_pax}</td>
+                <td><small>${doc_seg}</small></td>
+                <td>${TicketDocInfo?.TicketDocument?.DateOfIssue || ``}</td>
+
+                <td>${TicketDocInfo?.AgentIDs?.AgentID?.ID}<br>${TicketDocInfo?.TicketDocument?.ReportingType || ``}</td>
+            </tr>
+            `
+        })
+        $("#TicketDoc-info").html(`
+            <div class="traveller-info-sec" >
+                <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Tickets & EMDs </h4>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-centered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Number</th>
+                                    <th>Pax</th>
+                                    <th>Other</th>
+                                    <th>IssueDate</th>
+                                    <th>ReportingType</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${str}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            `);
     }
 
-    $.each(ContactInfoList, (n, ContactInfo) => {
-        str += `
+
+    var ContactInfoList = convert2Array(Response.DataLists?.ContactInfoList?.ContactInfo)
+    if (ContactInfoList.length > 0) {
+        str = ``
+
+        $.each(ContactInfoList, (n, ContactInfo) => {
+            str += `
             <tr>
                 <td>${ContactInfo?.ContactTypeText}</td>
                 <td>${ContactInfo?.Phone?.CountryDialingCode || ``} ${ContactInfo?.Phone?.PhoneNumber || ``}</td>
                 <td>${ContactInfo?.EmailAddress?.EmailAddressText || ``}</td>
             </tr>
-
             `
-    })
-    $("#ContactInfoList-info").html(`
+        })
+
+        $("#ContactInfoList-info").html(`
             <div class="traveller-info-sec" >
-            <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Contact Details</h4>
-            <div class="card">
-                <div class="card-body">
-                    <table class="table table-centered mb-0">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${str}
-                        </tbody>
-                    </table>
+                <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Contact Details</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-centered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${str}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div >
             `);
 
-
+    }
     // parsing FareDetail
     var FareDetail = []
     if (Order.FareDetail?.length > 0) {
@@ -1220,7 +1443,51 @@ function build_PNRview(d) {
 
     }
 
-
+    // parsing OrderStatus-info
+    str = ``
+    console.log(`Order`, Order.OrderItem)
+    if (Order.OrderItem?.StatusCode == "NOT ENTITLED") {
+        str = `
+        <div class="traveller-info-sec" >
+            <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Order Item\s</h4>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-2">
+                            <small class="badge badge-primary-lighten">Order ID</small>
+                            <h5>SQ_6QW7ND</h5>
+                        </div>
+                        <div class="col-lg-3">
+                            <small class="badge badge-primary-lighten">Price Garuntee Time Limit</small>
+                            <h5>${sia_date(Order.OrderItem?.PriceGuaranteeTimeLimitDateTime)}</h5>
+                        </div>
+                        <div class="col-lg-5">
+                            <small class="badge badge-primary-lighten">Price</small>
+                            <h5>${Order.OrderItem?.Price?.BaseAmount?.['#text']} + ${Order.OrderItem?.Price?.TaxSummary?.TotalTaxAmount?.['#text']} = ${Order.OrderItem?.Price?.TaxSummary?.TotalTaxAmount?.['#text']}</h5>
+                        </div>
+                        <div class="col-lg-2 text-end">
+                            <form action="65dea3e81d2f7e4eeb111e5e/action" method="post" class="OrderItemForIssuance" >
+                                <input type="hidden" name="pnrid" value="${d._id}" /> 
+                                <input type="hidden" name="do" value="Issuance" /> 
+                                <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" /> 
+                                <button type="submit" class="btn btn-primary">Issue TKTT/EMD</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `
+    } else {
+        $('#AfterTicket-Actions').html(`
+        <div>
+            <button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Cancel/Refund</button>
+            <button type="button" class="btn btn-secondary" onClick="javascript:alert('Coming Soon...')">Reissue</button>
+            <button type="button" class="btn btn-success" onClick="javascript:alert('Coming Soon...')">Other</button>
+        </div>
+        `)
+    }
+    $("#OrderStatus-info").html(str)
 
     // parsing price-info
     const TotalPrice = Order.TotalPrice
@@ -1274,64 +1541,25 @@ function build_PNRview(d) {
         `))
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    ShoppingResponseID = Response?.ShoppingResponse?.ShoppingResponseID
-
-    // parsing seagments
-    var FLTs = []
-    if (Response?.PricedOffer?.hasOwnProperty('Offer')) {
-
-        const Order = Response.Order
-
-        if (selectedOffer.JourneyOverview.JourneyPriceClass?.length > 0) {
-            selectedOffer.JourneyOverview.JourneyPriceClass.forEach((JourneyPriceClass) => {
-                FLTs.push(JourneyPriceClass.PaxJourneyRefID)
-            })
-        }
-        else {
-            FLTs.push(selectedOffer.JourneyOverview?.JourneyPriceClass.PaxJourneyRefID)
-        }
-
-        // parsing PaxJourneyList
-
-
-        $(`#flight - info`).append($(`
-            <div class="container list-item-inner  border bg-primary bg-opacity-10" >
-                <div class="d-flex justify-content-between row align-items-center text-bg-light p-2">
-                    <div class="col-12 col-md-10 col-xl-10 col-lg-10 p-2">
-                        <div class="row row-gap-2">
-                            ${sia_buildFTL(FLTs.toString())}
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-3 col-xl-2 col-lg-2 px-0 text-center border-start d-flex justify-content-center align-items-center">
-                        <div class="fare-button p-2">
-                            <span class="text-primary fw-semibold">${DataLists[selectedOffer.JourneyOverview.PriceClassRefID]?.['Name']}</span>
-                            <h4 class="owd-amount-price mt-2">$ ${amount_format(selectedOffer.OfferItem.Price.TotalAmount['#text'])}</h4>
-                            <div class="owd-amount-price-view">
-                                <a class="view-btn link-secondary text-decoration-underline link-offset-1 fs-6 fw-semibold" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightDetailOffcanvas" aria-controls="offcanvasRight" flts="${FLTs.toString()}" provider="ndcSIA" >Flight Detail &gt;</a>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div >
-            `))
+    if (1) {
+        $("#Activity-info").html(`
+        <div class="timeline-alt bg-body-secondary px-2">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <h5 class="m-0">Activity Log History</h5>
+                <form action="/65dea3e81d2f7e4eeb111e5e/PnrActivityLog" class="d-inline-block" id="fetch_action_log" >
+                    <input type="hidden" name="pnrid" value="${d._id}" />
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="mdi mdi-refresh me-1"></i>Refresh</button>
+                </form>
+            </div>
+            <div class="history-details" data-simplebar data-simplebar-primary style="max-height: 450px;" id="activity_log" ></div>
+        </div>
+        `)
     }
 
     console.log(d);
 }
 
-function sia_buildFareDetail() {
+
+function sia_issue() {
 
 }

@@ -5,13 +5,13 @@ const mongodbClient = require('../_helpers/db');
 module.exports = {
     index: (req, res, next) => { },
     view: async (req, res, next) => {
-       
+
         const qry = req.query
-        const pnrid =   qry.pnrid
-        
-        var _content = 
-        `
-        <div class="container-fluid">
+        const pnrid = qry.pnrid
+
+        var _content =
+            `
+        <div class="container-fluid pb-4">
 
             <!-- start page title -->
             <div class="row">
@@ -20,16 +20,16 @@ module.exports = {
                         <div class="page-title-right">
                             <ol class="breadcrumb m-0">
                                 <li class="breadcrumb-item"><a href="javascript: void(0);">Airlink</a></li>
-                                <li class="breadcrumb-item"><a href="javascript: void(0);">Pages</a></li>
+                                <li class="breadcrumb-item"><a class="link-primary text-decoration-underline link-offset-2" href="search.html">Back to List</a></li>
                                 <li class="breadcrumb-item active">PNR Details</li>
                             </ol>
                         </div>
-                        <h4 class="page-title" id="BookingRef-info" >Loading ...</h4>
+                        <h4 class="page-title" id="BookingRef-info" >Loading ... </h4>
                     </div>
                 </div>
             </div>
             <!-- end page title -->
-            
+            ${req.access}
             <!-- start message/alert -->
             <div class="row">
                 <div class="col-lg-9">
@@ -42,12 +42,17 @@ module.exports = {
 
             <!-- Start Content -->
             <div class="row">
-                <div class="col-12 col-md-9">
+                <div class="col-12 col-md-9" id="pnr_view_content" >
                     
-                    <div class="text-end pe-1 mb-1"><a class="link-primary text-decoration-underline link-offset-2" href="search.html"><i class="mdi mdi-chevron-left"></i>Back to Search</a></div>
+                    <div class="text-end pe-1 mb-1">
+                        
+                    </div>
                     <div class="selected_flight-info " id="PaxJourneyList-info" ></div>
                     <div class="selected_flight-info " id="PaxList-info" ></div>
+                    <div class="selected_flight-info " id="TicketDoc-info" ></div>
                     <div class="selected_flight-info " id="ContactInfoList-info" ></div>
+                    <div class="selected_flight-info " id="OrderStatus-info" ></div>
+                    <div class=" " id="AfterTicket-Actions" ></div>
                     
                 </div>
 
@@ -62,6 +67,8 @@ module.exports = {
                                     <a type="button" class="text-decoration-underline link-offset-2" data-bs-toggle="modal" data-bs-target="#fareRuleModel" provider="ndcSIA" >Full fare rules and conditions</a></li>
                             </ul>
                         </div>
+                        <div class="history-log shadow" id="Activity-info" > </div>
+
                         <!--
                         <div class="share-ticket-block">
                             <span><i class="uil uil-share-alt"></i> Share Itinerary:</span>
@@ -123,9 +130,33 @@ module.exports = {
     },
     dataForPnrView: async (req, res, next) => {
         const pnrid = req.body?.pnrid
-        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({_id: new ObjectId(pnrid)})
+        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         console.log('pnrdetails', pnrdetails)
-        return res.json(pnrdetails);
+        return res.json({'pnrdetails': pnrdetails, provider: 'ndcSIA', 'user_access': req.access});
+    },
+    PnrActivityLog: async (req, res, next) => {
+        const pnrid = req.body?.pnrid
+        const activityLogs = await mongodbClient.db('Airlink').collection('activity_log').find({ pnr_id: new ObjectId(pnrid) }).toArray()
+        console.log('activityLogs', activityLogs)
+        return res.json(activityLogs);
+    },
+    action: async (req, res, next) => {
+
+        const pnrid = req.body?.pnrid
+        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        req.pnrdetails = pnrdetails
+        var tp_res
+        if (pnrdetails?.provider == 'ndcSIA') {
+
+            const SIA = require('./_/providers/SIA/index.js')
+            tp_res = await SIA[`${req?.body?.do || req?.query?.do || 'index'}`](req, res, next);
+
+        } else if (pnrdetails?.provider == 'travelport') {
+
+
+        }
+
+        return res.json(tp_res)
     },
     test: (req, res, next) => {
         console.log('Testsing interface called')

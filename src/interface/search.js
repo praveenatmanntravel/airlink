@@ -465,6 +465,7 @@ module.exports = {
                     
                     <div class="text-end pe-1 mb-1"><a class="link-primary text-decoration-underline link-offset-2" href="search.html"><i class="mdi mdi-chevron-left"></i>Back to Search</a></div>
                     <div class="selected_flight-info " id="selected_flight-info" ></div>
+                    <div class="selected_flight-info " id="selected_Fare-Detail" ></div>
                     
                     <div class="traveller-info-sec">
                         <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Information</h4>

@@ -5,6 +5,8 @@ const { default: axios } = require('axios');
 const fs = require('node:fs');
 const { ObjectId } = require("mongodb");
 const mongodbClient = require('../../../../_helpers/db');
+const Fn = require('../../../../_helpers/functions');
+const { json } = require('express');
 
 const SIA_Config = {
 
@@ -53,9 +55,9 @@ module.exports = {
     flightAvailability: async (req, res, next) => {
 
 
-        const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
-        const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
-        return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
+        //const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
+        //const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
+        //return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
         const search_param = req.body;
         var nonce = CryptoJS.enc.Utf8.parse(CryptoJS.lib.WordArray.random(8));
         var nonceEncoded = nonce.toString(CryptoJS.enc.Base64);
@@ -165,11 +167,11 @@ module.exports = {
                     <!-- * Fare preference -If cabin type is present, fare preference will be ignored -->
                     <!-- <FarePreferences><FareCodes><Code><Code>{{farePreference}}</Code></Code></FareCodes></FarePreferences> -->
                     <!--Fare preference * -->
-                   <!--
+                   
                         <PricingMethodCriteria>
                             <BestPricingOption>CHJ</BestPricingOption>
                         </PricingMethodCriteria>
-                  -->
+                  
                 </ShoppingCriteria>
                 <!-- * Currency Override -->
                 <!-- <ResponseParameters><PricingParameter><OverrideCurCode>CNY</OverrideCurCode></PricingParameter><LangUsage><LangCode>ZH</LangCode></LangUsage>
@@ -280,9 +282,9 @@ module.exports = {
         });
     },
     OfferPrice: async (req, res, next) => {
-        const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
-        const x = await getLog(testing_sia_resp_id, `OfferPriceRSjson`)
-        return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: x }
+        //const testing_sia_resp_id = `65fcd7f219659d3826506ff9`;
+        //const x = await getLog(testing_sia_resp_id, `OfferPriceRSjson`)
+        //return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: x }
 
         const search_param = req.body;
         console.log(search_param)
@@ -419,13 +421,17 @@ module.exports = {
         fs.writeFileSync('./respXML.txt', apiResp);
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
         let jObj = JSON.stringify(parser.parse(apiResp));
-        let OfferPrice = {
-            OfferPriceRQTime: Date.now(),
-            OfferPriceRQ: reqBody,
-            OfferPriceRS: apiResp,
-            OfferPriceRSjson: jObj
+
+        const log_qry = {
+            $set: {
+                OfferPriceRQTime: Date.now(),
+                OfferPriceRQ: reqBody,
+                OfferPriceRS: apiResp,
+                OfferPriceRSjson: jObj
+            }
         }
-        updateLog(sia_resp_id, OfferPrice)
+        updateLog(sia_resp_id, log_qry)
+
         console.log(jObj)
         fs.writeFileSync('./respJSON.txt', jObj);
         return { provider: 'ndcSIA', sia_resp_id: sia_resp_id, apiResp: jObj }
@@ -611,13 +617,16 @@ module.exports = {
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
         const jObj = await parser.parse(apiResp);
         let resStr = JSON.stringify(jObj);
-        let OrderCreate = {
-            OrderCreateRQTime: Date.now(),
-            OrderCreateRQ: reqBody,
-            OrderCreateRS: apiResp,
-            OrderCreateRSjson: resStr
+
+        const log_qry = {
+            $set: {
+                OrderCreateRQTime: Date.now(),
+                OrderCreateRQ: reqBody,
+                OrderCreateRS: apiResp,
+                OrderCreateRSjson: resStr
+            }
         }
-        updateLog(sia_resp_id, OrderCreate)
+        updateLog(sia_resp_id, log_qry)
 
 
         // updating database as per the pnr
@@ -625,33 +634,215 @@ module.exports = {
         if (Response?.Order?.OrderID) {
 
             const { rq, rs } = await OrderRetrieve(Response?.Order?.OrderID)
-            const resStr = JSON.stringify((await parser.parse(rs)));
+            const OR_json = await parser.parse(rs);
 
             const pnrObj = {
-                agent: new ObjectId(req.session.agency._id),
+                agency: new ObjectId(req.session.agency._id),
                 provider: 'ndcSIA',
                 log_id: new ObjectId(sia_resp_id),
                 pnr: Response?.Order?.OrderID,
                 queue: `quote`,
-                user: new ObjectId(req.session.auth._id),
+                createdBy: new ObjectId(req.session.auth._id),
+                createdAt: Date.now(),
                 PaymentTimeLimitDateTime: Response?.Order?.PaymentTimeLimitDateTime,
                 PriceGuaranteeTimeLimitDateTime: Response?.Order?.OrderItem?.PriceGuaranteeTimeLimitDateTime,
-                OrderRetrieve: {
-                    rqTime: Date.now(),
-                    rq: rq,
-                    rs: rs,
-                    rsJson: resStr
-                }
+                OR_json: OR_json
             }
-            const pnrs = await mongodbClient.db('Airlink').collection('pnrs').insertOne(pnrObj)
+
+            var pnrs = await mongodbClient.db('Airlink').collection('pnrs').insertOne(pnrObj)
+
+            await updateLog(sia_resp_id, {
+                $push: {
+                    "OrderRetrieve": {
+                        rqTime: Date.now(),
+                        rq: rq,
+                        rs: rs,
+                        rsJson: OR_json
+                    }
+                }
+            })
+
+            const activityLog = {
+                agency: new ObjectId(req.session.agency._id),
+                pnr_id: new ObjectId(pnrs.insertedId),
+                activityBy: new ObjectId(req.session.auth._id),
+                activityAt: Date.now(),
+                heading: 'PNR_Created',
+                //remark:     rmk
+            }
+            await Fn.ActivityLog_insert(activityLog)
         }
 
-
         console.log(jObj)
-       
+
         return { provider: 'ndcSIA', pnr_id: pnrs.insertedId, apiResp: resStr }
     },
+    Issuance: async (req, res, next) => {
+        var returnData = { error: 0, provider: 'ndcSIA' }
+        const pnrid = req.body?.pnrid
+        const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
 
+
+        const { rq, rs } = await OrderRetrieve(req.pnrdetails?.pnr)
+        const json_OrderViewRS = (await parser.parse(rs))?.Envelope?.Body?.OrderViewRS;
+
+        fs.writeFileSync('./respXML.txt', rs);
+        fs.writeFileSync('./respJSON.txt', JSON.stringify(json_OrderViewRS));
+        /*
+        const json_OrderViewRS = await JSON.parse(fs.readFileSync('./respJSON.txt'));
+        */
+        if (json_OrderViewRS.hasOwnProperty('Errors')) {
+
+            returnData.error = 1
+            returnData.message = json_OrderViewRS?.Errors.Error?.DescText || `Something went wrong.`
+        }
+        else {
+
+            const OrderViewRS_Order = json_OrderViewRS?.Response?.Order
+            const OrderViewRS_OrderItem = Fn.convert2Array(OrderViewRS_Order?.OrderItem)
+            console.log('OrderViewRS_OrderItem', OrderViewRS_Order, OrderViewRS_OrderItem)
+            // validation that StatusCode is NOT ENTITLED
+            NOT_ENTITLED = true
+            OrderViewRS_OrderItem?.forEach((OrderItem) => {
+                if (OrderItem?.hasOwnProperty('StatusCode') && OrderItem?.StatusCode == 'NOT ENTITLED') {
+                    NOT_ENTITLED = true
+                }
+            })
+
+            if (NOT_ENTITLED) {
+
+                // Calculating the total price
+                const OrderViewRS_OrderID = OrderViewRS_Order?.OrderID
+                const OrderViewRS_Order_TotalPrice = OrderViewRS_Order?.TotalPrice?.TotalAmount['#text']
+                const OrderViewRS_Order_CurCode = OrderViewRS_Order?.TotalPrice?.TotalAmount['@_CurCode']
+
+                //preparing for Ticket Issuance
+                var _Request = `
+                    <Request>
+                        <Order>
+                            <OrderID>${OrderViewRS_OrderID}</OrderID>
+                            <OwnerCode/>
+                        </Order>
+                        <PaymentInfo>
+                            <Amount CurCode="${OrderViewRS_Order_CurCode}" >${OrderViewRS_Order_TotalPrice}</Amount>
+                            <TypeCode>CA</TypeCode>
+                            <PaymentMethod>
+                                <Cash>
+                                    <CashInd>true</CashInd>
+                                </Cash>
+                            </PaymentMethod>
+                        </PaymentInfo>
+                    </Request>
+                `
+
+                const { OC_rq, OC_rs } = await OrderChange(_Request)
+                const OC_rs_json = await parser.parse(OC_rs)
+                const json_OC_OrderViewRS = OC_rs_json?.Envelope?.Body?.OrderViewRS;
+                fs.writeFileSync('./OC_rs_json.txt', JSON.stringify(OC_rs_json));
+
+                /*
+                const json_OC_OrderViewRS = await JSON.parse(fs.readFileSync('./OC_rs_json.txt'));
+               */
+
+                if (json_OC_OrderViewRS.hasOwnProperty('Errors')) {
+
+                    returnData.error = 1
+                    returnData.message = json_OC_OrderViewRS?.Errors.Error?.DescText || `Something went wrong.`
+                } else {
+                    //console.log('json_OC_OrderViewRS', json_OC_OrderViewRS)
+
+                    //check for TicketDocInfos
+                    var TicketDocInfo2Update = []
+                    if (json_OC_OrderViewRS?.Response.hasOwnProperty('TicketDocInfos')) {
+
+                        const TicketDocInfo = Fn.convert2Array(json_OC_OrderViewRS?.Response?.TicketDocInfos?.TicketDocInfo)
+                        if (TicketDocInfo?.length > 0) {
+
+                            TicketDocInfo?.forEach((doc) => {
+
+                                // check id ticket already inserted 
+                                if ((req?.pnrdetails?.ticket_docs?.filter((e) => { console.log('e in filte', e, doc); return e.Number == doc?.TicketDocument.TicketDocNbr }) || [])?.length == 0) {
+                                    console.log('doc', doc)
+
+                                    TicketDocInfo2Update.push({
+                                        'Number': doc?.TicketDocument?.TicketDocNbr,
+                                        'AgentId': doc?.AgentIDs?.AgentID?.ID,
+                                        'Pax': doc?.PassengerReference,
+                                        'IssueOn': doc?.TicketDocument?.DateOfIssue,
+                                        'IssueBy': new ObjectId(req.session.auth._id),
+                                        'Other': new Date()
+                                    })
+                                }
+                            })
+                        }
+                    }
+
+                    const { rq: OR_rq, rs: OR_rs } = await OrderRetrieve(req.pnrdetails?.pnr)
+                    console.log('OR_rq, OR_rs', OR_rq, OR_rs)
+                    const OR_rs_json = await parser.parse(OR_rs)
+
+                    await mongodbClient.db('Airlink').collection('pnrs').updateOne(
+                        { _id: req.pnrdetails?._id },
+                        {
+                            $set: { OR_json: OR_rs_json },
+                            $push: {
+                                ticket_docs: { $each: TicketDocInfo2Update }
+                            }
+                        },
+                        { upsert: true }
+                    )
+
+                    await updateLog(req.pnrdetails?.log_id, {
+                        $push: {
+                            "OrderRetrieve": {
+                                rqTime: Date.now(),
+                                rq: OR_rq,
+                                rs: OR_rs,
+                                rsJson: OR_rs_json
+                            },
+                            "OrderChange": {
+                                rqTime: Date.now(),
+                                rq: OC_rq,
+                                rs: OC_rs,
+                                rsJson: OC_rs_json
+                            }
+                        }
+                    })
+                }
+
+
+                //fs.writeFileSync('./respXML.txt', OC_rs);
+                //fs.writeFileSync('./respJSON.txt', JSON.stringify(json_OrderViewRS));
+                const activityLog = {
+                    agency: new ObjectId(req.session.agency._id),
+                    pnr_id: new ObjectId(pnrs.insertedId),
+                    activityBy: new ObjectId(req.session.auth._id),
+                    activityAt: Date.now(),
+                    heading: 'PNR_Issued',
+                    //remark:     rmk
+                }
+                await Fn.ActivityLog_insert(activityLog)
+
+                returnData.error = 0
+                returnData.reload = `_self`
+                returnData.message = 'Ticketing Done'
+
+
+            } else {
+
+                returnData.error = 1
+                returnData.message = 'Not Eligible for ticketing'
+            }
+        }
+
+        return returnData
+
+        console.log('OC_rq, OC_rs', OC_rq, OC_rs)
+        return { provider: 'ndcSIA', pnrid: req.pnrdetails?._id, apiResp: rq, OC_rq: OC_rq, OC_rs: OC_rs }
+
+
+
+    },
     OrderCancel: async (req, res, next) => {
         const jObj = JSON.parse(`{"?xml":{"@_version":"1.0","@_encoding":"UTF-8"},"Envelope":{"Header":{"To":"http://www.w3.org/2005/08/addressing/anonymous","From":{"Address":"https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ"},"Action":"http://webservices.amadeus.com/NDC_OrderCreate_18.1","MessageID":"urn:uuid:49dbdbf4-362d-3554-1195-e312c4a7a0ba","RelatesTo":{"#text":"3aa0046c-f5df-4de3-8df7-7818f598f0d8","@_RelationshipType":"http://www.w3.org/2005/08/addressing/reply"},"Session":{"SessionId":"01EAFQZDKE","SequenceNumber":1,"SecurityToken":"1TE5GSO8VVT3A25TVZ6CH2QK8I","@_TransactionStatusCode":"End"}},"Body":{"OrderViewRS":{"PayloadAttributes":{"Version":18.1},"Response":{"DataLists":{"BaggageAllowanceList":{"BaggageAllowance":[{"BaggageAllowanceID":"FBA1","TypeCode":"Checked","WeightAllowance":{"MaximumWeightMeasure":{"#text":35,"@_UnitCode":"Kilogram"},"ApplicablePartyText":"Traveler"}},{"BaggageAllowanceID":"FBA2","TypeCode":"Checked","WeightAllowance":{"MaximumWeightMeasure":{"#text":30,"@_UnitCode":"Kilogram"},"ApplicablePartyText":"Traveler"}}]},"ContactInfoList":{"ContactInfo":[{"ContactInfoID":"CTCPAX1_1","ContactTypeText":"NOTIFICATION","IndividualRef":"PAX1","Phone":{"LabelText":"MOBILE","CountryDialingCode":91,"PhoneNumber":9988767765},"EmailAddress":{"EmailAddressText":"PRAVEEN@MANNTRAVEL.COM.AU"}},{"ContactInfoID":"CTC_1","ContactTypeText":"STANDARD","Phone":{"LabelText":"MOBILE","PhoneNumber":919988767765},"EmailAddress":{"EmailAddressText":"PRAVEEN@MANNTRAVEL.COM.AU"}}]},"InstructionsList":{"Instruction":{"FreeFormTextInstruction":{"Remark":"BOOKING SITE AU"},"@_ListKey":"OSI_30"}},"PaxJourneyList":{"PaxJourney":[{"PaxJourneyID":"FLT1","Duration":"PT7H50M","PaxSegmentRefID":"SEG1"},{"PaxJourneyID":"FLT2","Duration":"PT5H35M","PaxSegmentRefID":"SEG2"}]},"PaxList":{"Pax":{"PaxID":"PAX1","PTC":"ADT","Individual":{"IndividualID":"PAX1","Birthdate":"2002-02-02","TitleName":"MR","GivenName":"PRAVEEN","Surname":"SINHA"}}},"PaxSegmentList":{"PaxSegment":[{"PaxSegmentID":"SEG1","Dep":{"IATA_LocationCode":"MEL","TerminalName":2,"AircraftScheduledDateTime":"2024-04-06T10:35:00"},"Arrival":{"IATA_LocationCode":"SIN","TerminalName":0,"AircraftScheduledDateTime":"2024-04-06T15:25:00"},"MarketingCarrierInfo":{"CarrierDesigCode":"SQ","CarrierName":"SINGAPORE AIRLINES","MarketingCarrierFlightNumberText":238,"RBD_Code":"P"},"OperatingCarrierInfo":{"CarrierDesigCode":"SQ","CarrierName":"SINGAPORE AIRLINES","Disclosure":{"DisclosureID":"DIS1","Desc":{"DescID":"DES1","DescText":"SINGAPORE AIRLINES"}}},"DatedOperatingLeg":{"DatedOperatingLegID":"LEG1","Dep":{"IATA_LocationCode":"MEL","AircraftScheduledDateTime":"2024-04-06T10:35:00"},"Arrival":{"IATA_LocationCode":"SIN","AircraftScheduledDateTime":"2024-04-06T15:25:00"},"IATA_AircraftType":{"IATA_AircraftTypeCode":359}}},{"PaxSegmentID":"SEG2","Dep":{"IATA_LocationCode":"SIN","TerminalName":3,"AircraftScheduledDateTime":"2024-04-08T02:35:00"},"Arrival":{"IATA_LocationCode":"DEL","TerminalName":3,"AircraftScheduledDateTime":"2024-04-08T05:40:00"},"MarketingCarrierInfo":{"CarrierDesigCode":"SQ","CarrierName":"SINGAPORE AIRLINES","MarketingCarrierFlightNumberText":402,"RBD_Code":"M"},"OperatingCarrierInfo":{"CarrierDesigCode":"SQ","CarrierName":"SINGAPORE AIRLINES","Disclosure":{"DisclosureID":"DIS2","Desc":{"DescID":"DES2","DescText":"SINGAPORE AIRLINES"}}},"DatedOperatingLeg":{"DatedOperatingLegID":"LEG2","Dep":{"IATA_LocationCode":"SIN","AircraftScheduledDateTime":"2024-04-08T02:35:00"},"Arrival":{"IATA_LocationCode":"DEL","AircraftScheduledDateTime":"2024-04-08T05:40:00"},"IATA_AircraftType":{"IATA_AircraftTypeCode":787}}}]},"PriceClassList":{"PriceClass":{"PriceClassID":"FF11","Name":"SIN - PEY ACC FF1 STANDARD"}},"ServiceDefinitionList":{"ServiceDefinition":[{"ServiceDefinitionID":"BAGALLOW_1","Name":"Bag allowances","Description":{"DescID":"Bag allowances"},"ServiceDefinitionAssociation":{"BaggageAllowanceRefID":"FBA1"}},{"ServiceDefinitionID":"BAGALLOW_2","Name":"Bag allowances","Description":{"DescID":"Bag allowances"},"ServiceDefinitionAssociation":{"BaggageAllowanceRefID":"FBA2"}}]}},"Order":{"OrderID":"SQ_55V7WH","OwnerCode":"SQ","PaymentTimeLimitDateTime":"2024-03-05T12:00:00.000Z","BookingRef":{"BookingID":"55V7WH","BookingEntity":{"Carrier":{"AirlineDesigCode":"SQ"}}},"OrderItem":{"OrderItemID":"SQ_55V7WH_AIR-1-2","OwnerCode":"SQ","StatusCode":"NOT ENTITLED","PriceGuaranteeTimeLimitDateTime":"2024-03-01T13:00:00Z","FareDetail":{"PassengerRefs":"PAX1","Price":{"TotalAmount":{"DetailCurrencyPrice":{"Total":{"#text":2034.61,"@_Code":"AUD"}}},"BaseAmount":{"#text":1866,"@_Code":"AUD"},"Taxes":{"Total":{"#text":168.61,"@_Code":"AUD"},"Breakdown":{"Tax":[{"Amount":{"#text":60,"@_Code":"AUD"},"Nation":"DP","TaxCode":"AU"},{"Amount":{"#text":8.68,"@_Code":"AUD"},"Nation":"SE","TaxCode":"WG"},{"Amount":{"#text":25.33,"@_Code":"AUD"},"Nation":"DE","TaxCode":"WY"},{"Amount":{"#text":12.4,"@_Code":"AUD"},"Nation":"DE","TaxCode":"L7"},{"Amount":{"#text":9.2,"@_Code":"AUD"},"Nation":"AE","TaxCode":"OP"},{"Amount":{"#text":53,"@_Code":"AUD"},"Nation":"AD","TaxCode":"SG"}]}}},"FareComponent":[{"FareBasis":{"FareBasisCode":{"Code":"P14AUO"},"CabinType":{"CabinTypeCode":{"#text":4,"@_type":"xs:string"},"CabinTypeName":{"#text":"Economic Premium","@_type":"xs:string"}}},"FareRules":{"Penalty":{"Details":{"Detail":[{"Type":"Cancel","Amounts":{"Amount":[{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount with sale currency"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure no show"}}]}},{"Type":"Change","Amounts":{"Amount":[{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"ADM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount with sale currency"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"ANM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"BDM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"BNM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure no show"}}]}}]},"@_CancelFeeInd":"true","@_ChangeFeeInd":"true"}},"PriceClassRef":"FF11","SegmentRefs":"SEG1"},{"FareBasis":{"FareBasisCode":{"Code":"P14AUO"},"CabinType":{"CabinTypeCode":{"#text":5,"@_type":"xs:string"},"CabinTypeName":{"#text":"ECONOMY","@_type":"xs:string"}}},"FareRules":{"Penalty":{"Details":{"Detail":[{"Type":"Cancel","Amounts":{"Amount":[{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ADX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount with sale currency"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"ANX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BDX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":520,"@_Code":"AUD"},"AmountApplication":"BNX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure no show"}}]}},{"Type":"Change","Amounts":{"Amount":[{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"ADM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount after departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"ADX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount with sale currency"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"ANM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"ANX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount after departure no show"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"BDM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":70,"@_Code":"AUD"},"AmountApplication":"BDX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNC","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNI","ApplicableFeeRemarks":{"Remark":"Revalidation minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":0,"@_Code":"AUD"},"AmountApplication":"BNM","ApplicableFeeRemarks":{"Remark":"Reissue/Refund minimum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNT","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount for the ticket before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNU","ApplicableFeeRemarks":{"Remark":"Revalidation maximum penalty amount before departure no show"}},{"CurrencyAmountValue":{"#text":260,"@_Code":"AUD"},"AmountApplication":"BNX","ApplicableFeeRemarks":{"Remark":"Reissue/Refund maximum penalty amount before departure no show"}}]}}]},"@_CancelFeeInd":"true","@_ChangeFeeInd":"true"}},"PriceClassRef":"FF11","SegmentRefs":"SEG2"}],"Remarks":{"Remark":["FC-MEL SQ SIN SQ DEL1253.19NUC1253.19END ROE1.488998","FE-PAX *M*CHNG FEE APPLY / REFUND FEE APPLY / NO SHOW FEE APPLY|02362662||"]}},"Price":{"TotalAmount":{"#text":2034.61,"@_CurCode":"AUD"},"BaseAmount":{"#text":1866,"@_CurCode":"AUD"},"TaxSummary":{"TotalTaxAmount":{"#text":168.61,"@_CurCode":"AUD"}}},"Service":[{"ServiceID":"SEG1_PAX1","StatusCode":"HK","PaxRefID":"PAX1","ServiceAssociations":{"ServiceDefinitionRef":{"ServiceDefinitionRefID":"BAGALLOW_1","PaxSegmentRefID":"SEG1"}}},{"ServiceID":"SEG2_PAX1","StatusCode":"HK","PaxRefID":"PAX1","ServiceAssociations":{"ServiceDefinitionRef":{"ServiceDefinitionRefID":"BAGALLOW_2","PaxSegmentRefID":"SEG2"}}}]},"TotalPrice":{"TotalAmount":{"#text":2034.61,"@_CurCode":"AUD"},"BaseAmount":{"#text":1866,"@_CurCode":"AUD"},"TaxSummary":{"TotalTaxAmount":{"#text":168.61,"@_CurCode":"AUD"}}}}}}}}}`)
         const Response = jObj?.Envelope?.Body?.OrderViewRS?.Response
@@ -690,8 +881,8 @@ async function getLog(sia_resp_id, name) {
     }
 }
 
-function updateLog(sia_resp_id, newData) {
-    const result = mongodbClient.db('Airlink').collection('sia_log').updateOne({ _id: new ObjectId(sia_resp_id) }, { $set: newData });
+async function updateLog(sia_resp_id, log_qry) {
+    const result = await mongodbClient.db('Airlink').collection('sia_log').updateOne({ _id: new ObjectId(sia_resp_id) }, log_qry, { upsert: true });
     return true
 }
 async function createLog() {
@@ -762,6 +953,63 @@ async function OrderRetrieve(pnr) {
     return { rq: reqBody, rs: apiResp }
 }
 
+async function OrderChange(_Request) {
+    var reqBody = `
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sec="http://xml.amadeus.com/2010/06/Security_v1" xmlns:link="http://wsdl.amadeus.com/2010/06/ws/Link_v1" xmlns:ses="http://xml.amadeus.com/2010/06/Session_v3" xmlns:ord="http://www.iata.org/IATA/2015/00/2018.1/OrderChangeRQ">
+    ${xml_req_header(`http://webservices.amadeus.com/NDC_OrderChange_18.1`)}
+        <soapenv:Body>
+            <OrderChangeRQ xmlns="http://www.iata.org/IATA/2015/00/2018.1/OrderChangeRQ">
+                <PayloadAttributes>
+                    <Version>18.1</Version>
+                </PayloadAttributes>
+                <PointOfSale>
+                    <Country>
+                        <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                    </Country>
+                </PointOfSale>
+                <Party>
+                    <Recipient>
+                        <ORA>
+                            <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                        </ORA>
+                    </Recipient>
+                    <Participant>
+                        <Aggregator>
+                            <AggregatorID></AggregatorID>
+                        </Aggregator>
+                    </Participant>
+                    <Sender>
+                        <TravelAgency>
+                            <AgencyID>${SIA_Config.agencyID}</AgencyID>
+                            <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
+                            <Name>${SIA_Config.agencyName}</Name>
+                        </TravelAgency>
+                    </Sender>
+                </Party>
+                ${_Request}
+            </OrderChangeRQ>
+        </soapenv:Body>
+    </soapenv:Envelope>`;
+    console.log(reqBody)
+    //return reqBody
+
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "text/xml");
+    myHeaders.append("CHAR", "UTF-8");
+    myHeaders.append("SOAPAction", "http://webservices.amadeus.com/NDC_OrderChange_18.1");
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: reqBody,
+        redirect: 'follow'
+    };
+
+    const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+    return { OC_rq: reqBody, OC_rs: apiResp }
+}
+
+
 function xml_req_header(_action) {
     var nonce = CryptoJS.enc.Utf8.parse(CryptoJS.lib.WordArray.random(8));
     var nonceEncoded = nonce.toString(CryptoJS.enc.Base64);
@@ -798,6 +1046,7 @@ function xml_req_header(_action) {
     </soapenv:Header>
     `);
 }
+
 async function header(password) {
     body1: `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sec="http://xml.amadeus.com/2010/06/Security_v1" xmlns:link="http://wsdl.amadeus.com/2010/06/ws/Link_v1" xmlns:ses="http://xml.amadeus.com/2010/06/Session_v3" xmlns:ns="http://www.iata.org/IATA/2015/00/2018.1/AirShoppingRQ">\r\n    <soapenv:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">\r\n        <sec:AMA_SecurityHostedUser>\r\n            <sec:UserID POS_Type="1" RequestorType="U" PseudoCityCode="NDCSQ08SQ" AgentDutyCode="SU">\r\n                <typ:RequestorID xmlns:typ="http://xml.amadeus.com/2010/06/Types_v1" xmlns:iat="http://www.iata.org/IATA/2007/00/IATA2010.1">\r\n                    <iat:CompanyName>SQ</iat:CompanyName>\r\n                </typ:RequestorID>\r\n            </sec:UserID>\r\n        </sec:AMA_SecurityHostedUser>\r\n        <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">\r\n            <wsse:UsernameToken>\r\n                <wsse:Username>WSSQASG</wsse:Username>\r\n                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">' + passwordDigest + '</wsse:Password>\r\n                <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">' + nonceEncoded + '</wsse:Nonce>\r\n                <wsu:Created>' + timestamp + '</wsu:Created>\r\n            </wsse:UsernameToken>\r\n        </wsse:Security>\r\n        <wsa:Action>http://webservices.amadeus.com/NDC_AirShopping_18.1</wsa:Action>\r\n        <wsa:MessageID>3aa0046c-f5df-4de3-8df7-7818f598f0d8</wsa:MessageID>\r\n        <wsa:To>https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ</wsa:To>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <AirShoppingRQ xmlns="http://www.iata.org/IATA/2015/00/2018.1/AirShoppingRQ">\r\n            <PayloadAttributes>\r\n                <Version>18.1</Version>\r\n            </PayloadAttributes>\r\n            <PointOfSale>\r\n                <Country>\r\n                    <CountryCode>AU</CountryCode>\r\n                </Country>\r\n            </PointOfSale>\r\n            <Party>\r\n                <Recipient>\r\n                    <ORA>\r\n                        <AirlineDesigCode>SQ</AirlineDesigCode>\r\n                    </ORA>\r\n                </Recipient>\r\n                <Participant>\r\n                    <Aggregator>\r\n                        <AggregatorID></AggregatorID>\r\n                    </Aggregator>\r\n                </Participant>\r\n                <Sender>\r\n                    <TravelAgency>\r\n                        <AgencyID>02362662</AgencyID>\r\n                        <IATA_Number>02362662</IATA_Number>\r\n                        <Name>Air link Service group</Name>\r\n                    </TravelAgency>\r\n                </Sender>\r\n            </Party>\r\n            <Request>\r\n                <FlightRequest>\r\n                    <OriginDestRequest>\r\n                        <OriginDepRequest>\r\n                            <IATA_LocationCode>BKK</IATA_LocationCode>\r\n                            <Date>2023-10-10</Date>\r\n                        </OriginDepRequest>\r\n                        <DestArrivalRequest>\r\n                            <IATA_LocationCode>SIN</IATA_LocationCode>\r\n                        </DestArrivalRequest>\r\n                    </OriginDestRequest>\r\n                    <!--\r\n                    <OriginDestRequest><OriginDepRequest><IATA_LocationCode>SIN</IATA_LocationCode><Date>2023-11-11</Date></OriginDepRequest><DestArrivalRequest><IATA_LocationCode>BKK</IATA_LocationCode></DestArrivalRequest>\r\n                    </OriginDestRequest>\r\n                    -->\r\n                \r\n        </FlightRequest>\r\n        <Paxs>\r\n            <Pax>\r\n                <PaxID>ADT1</PaxID>\r\n                <PTC>ADT</PTC>\r\n            </Pax>\r\n            <!--\r\n                    <Pax><PaxID>ADT2</PaxID><PTC>ADT</PTC></Pax><Pax><PaxID>CHD1</PaxID><PTC>CHD</PTC></Pax><Pax><PaxID>INF1</PaxID><PTC>INF</PTC></Pax>\r\n                     -->\r\n                \r\n            \r\n</Paxs>\r\n<ShoppingCriteria>\r\n    <CabinTypeCriteria>\r\n        <CabinTypeName>ECO</CabinTypeName>\r\n    </CabinTypeCriteria>\r\n    <!-- * Fare preference -If cabin type is present, fare preference will be ignored -->\r\n    <!-- <FarePreferences><FareCodes><Code><Code></Code></Code></FareCodes></FarePreferences> -->\r\n<!--Fare preference * -->\r\n<!--\r\n        <PricingMethodCriteria><BestPricingOption>CHJ</BestPricingOption></PricingMethodCriteria>\r\n        -->\r\n    \r\n</ShoppingCriteria>\r\n<!-- * Currency Override -->\r\n<!-- <ResponseParameters><PricingParameter><OverrideCurCode>CNY</OverrideCurCode></PricingParameter><LangUsage><LangCode>ZH</LangCode></LangUsage>\r\n        </ResponseParameters> -->\r\n<!-- Currency Override * -->\r\n<!-- * Corporate Code -->\r\n<ProgramCriteria>\r\n    <ProgramAccount>\r\n        <AccountID></AccountID>\r\n    </ProgramAccount>\r\n    <ProgramOwner>\r\n        <Carrier>\r\n            <AirlineDesigCode>SQ</AirlineDesigCode>\r\n        </Carrier>\r\n    </ProgramOwner>\r\n</ProgramCriteria>\r\n<!--Corporate Code * --> \r\n\r\n\r\n\r\n</Request>\r\n</AirShoppingRQ>\r\n</soapenv:Body>\r\n</soapenv:Envelope>`
     var nonce = CryptoJS.enc.Utf8.parse(CryptoJS.lib.WordArray.random(8));

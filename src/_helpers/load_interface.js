@@ -9,9 +9,15 @@ module.exports = {
         var processing = { status: 'ok' };
         if (req?.params?.interface) {
             try {
-                var _interface = await mongodbClient.db('Airlink').collection('interface').findOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1 });
+                var _interface = await mongodbClient.db('Airlink').collection('interface').findOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1, access_labels: 1 });
                 console.log('_interface >> ', _interface)
                 if (_interface != null) {
+
+                    // Loading user access access 
+                    const access = await mongodbClient.db('Airlink').collection('user_access').findOne({ interface_id: new ObjectId(_interface._id), user_id: new ObjectId(req.session.auth._id) })
+                    req.access = access?.access || []
+                    console.log("req.access", req.access)
+                    
                     var prog_path = path.join(__dirname, '../interface/', _interface.path);
                     var program = require(prog_path);
                     console.log('prog_path', prog_path)
@@ -21,13 +27,13 @@ module.exports = {
                     processing = { status: 'Not Ok', msg: 'Interface not found' }
                 }
             } catch (e) {
-                const _content=`
+                const _content = `
                 <h1>404 not found</h1>
                 <p>${JSON.stringify(e)}</p>
                 `;
                 var html = html_doc(req, res, next, _content)
                 return res.send(html)
-                
+
                 processing = { status: 'Not Ok', msg: `Wrong interface value ${e}` }
             }
         } else {

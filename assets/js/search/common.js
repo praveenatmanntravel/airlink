@@ -7,10 +7,18 @@ var search_filters = {
     },
     selected: {}
 }
+const convert2Array = (O) => {
+    var r = []
+    if (O?.hasOwnProperty('length') && typeof (O) !== 'string') {
+        O.forEach((o) => r.push(o))
+    } else if (O !== undefined) {
+        r.push(O)
+    }
 
+    return r
+}
 const buildFilter = () => {
     var s = ``
-
 
 
     if (search_filters?.data?.journy_list.hasOwnProperty('length') && search_filters?.data?.journy_list.length > 0) {
@@ -259,16 +267,16 @@ const search_panel = (mode) => {
 }
 
 function fetchForPNRView(pnrid) {
-//alert(pnrid)
+    //alert(pnrid)
     const data = { pnrid: pnrid, 'do': 'dataForPnrView' }
     $.ajax({
         data: data, type: "POST", url: `/65dea3e81d2f7e4eeb111e5e/dataForPnrView`, dataType: "json", encode: true,
     }).done(function (d) {
-        
-        if(d.provider == 'ndcSIA'){
+
+        if (d.provider == 'ndcSIA') {
             build_PNRview(d)
         }
-        else if(1){
+        else if (1) {
             alert('Error: 48')
         }
 
@@ -316,8 +324,119 @@ $(`body`).on('click', '.select_fare', (event) => {
 });
 
 
-// display fare rule
 
+// TKTT/EMD issuence
+$("#pnr_view_content").on('submit', 'form.OrderItemForIssuance', function (event) {
+
+
+    event.preventDefault();
+    event.target.classList.add('processing')
+
+    //$(event.target).addClass('processing')
+    //return false
+    var form_action = event.target.getAttribute("action");
+    var form_method = event.target.getAttribute("method");
+    //alert(form_action) return
+    var error = false;
+    var fData = {};
+    ($(this).serializeArray()).map(e => { fData[e.name] = e.value });
+
+    $.ajax({
+        data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
+    }).done(function (data) {
+        data = data;
+
+        console.log(data)
+
+    })
+        .fail(function (e) {
+            console.log('error', e)
+        })
+        .always(function () {
+            event.target.classList.remove('processing')
+        });
+
+});
+
+// fetch ActivityLog of a PNR
+
+$("body").on('submit', '#fetch_action_log', function (event) {
+
+    event.preventDefault();
+    var form_action = event.target.getAttribute("action");
+    var form_method = event.target.getAttribute("method");
+    //alert(form_action) return
+    var error = false;
+    var fData = {};
+    ($(this).serializeArray()).map(e => { fData[e.name] = e.value });
+
+    $.ajax({
+        data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
+    }).done(function (remarks) {
+        var s = ``
+        if (remarks?.length > 0) {
+            remarks.forEach((rmk) => {
+                s += `
+                <div class="timeline-item">
+                    <i class="mdi mdi-circle bg-info-lighten text-info timeline-icon"></i>
+                    <div class="timeline-item-info">
+                        <h5 class="mt-0 mb-1">${rmk.heading}</h5>
+                        <p class="font-14">By: Isha Gupta <span class="ms-2 font-12"><br>Date: ${new Date(rmk.activityAt)}</span></p>
+                        <b class="mt-2">${rmk.heading}</b>
+                        ${rmk?.body || ``}
+                    </div>
+                </div>
+            `
+            })
+        }
+        $("#activity_log").html(s)
+
+    })
+        .fail(function (e) {
+            console.log('error', e)
+        })
+        .always(function () {
+            event.target.classList.remove('processing')
+        });
+
+
+    event.target.classList.add('processing')
+})
+
+$("#create-pnr-form").submit(function (event) {
+
+    event.preventDefault();
+    event.target.classList.add('processing')
+    //$(event.target).addClass('processing')
+    //return false
+    var form_action = event.target.getAttribute("action");
+
+    var error = false;
+    var fData = {};
+    ($(this).serializeArray()).map(e => { fData[e.name] = e.value });
+    fData.sia_resp_id = sia_resp_id
+    fData.do = `OrderCreate`
+
+    $.ajax({
+        data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
+    }).done(function (data) {
+        data = data;
+
+        console.log(data)
+
+    })
+        .fail(function (e) {
+            console.log('error', e)
+        })
+        .always(function () {
+            event.target.classList.remove('processing')
+        });
+
+});
+
+
+
+// display fare rule
 const fareRuleModel = document.getElementById('fareRuleModel')
 fareRuleModel.addEventListener('show.bs.model', event => {
 
