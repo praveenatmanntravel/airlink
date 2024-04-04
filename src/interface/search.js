@@ -419,15 +419,28 @@ module.exports = {
 
 
 
-<!-- Flight detail popup -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="flightDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
-    <div class="offcanvas-header pb-0">
-        <h3 class="offcanvasRightLabel fw-semibold">Flight Details</h3>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <!-- Flight detail popup -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="flightDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header pb-0">
+            <h3 class="offcanvasRightLabel fw-semibold">Flight Details</h3>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+        </div>
     </div>
-    <div class="offcanvas-body p-0">
+
+
+    <!-- FARE detail Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="fareDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header pb-0 shadow-lg">
+            <h3 class="offcanvasRightLabel fw-semibold">Fare Details</h3>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+        </div>
     </div>
-</div>
+
+
 <script src="/js/search/common.js"></script>
 <script src="/js/search/travelport.js"></script>
 <script src="/js/search/ndcSIA.js"></script>
@@ -458,76 +471,25 @@ module.exports = {
                 </div>
             </div>
             <!-- end page title -->
+            
+            <!-- start message/alert -->
+            <div class="row" id="message_head" >
+                <div class="col-lg-9">
+                    <div class="alert alert-success alert-dismissible text-bg-success border-0 fade show" role="alert">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                        PNR details added successfully.
+                    </div>
+                </div>
+            </div>
 
             <!-- Start Content -->
             <div class="row">
                 <div class="col-12 col-md-9">
                     
-                    <div class="text-end pe-1 mb-1"><a class="link-primary text-decoration-underline link-offset-2" href="search.html"><i class="mdi mdi-chevron-left"></i>Back to Search</a></div>
                     <div class="selected_flight-info " id="selected_flight-info" ></div>
                     <div class="selected_flight-info " id="selected_Fare-Detail" ></div>
+                    <div class="passangerDetailSec" id="pax-info" action-url="/${req?.params?.interface}/ndcSIA" > </div>
                     
-                    <div class="traveller-info-sec">
-                        <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Information</h4>
-                        <form action="/${req?.params?.interface}/ndcSIA" method="post" id="create-pnr-form" >   
-                        <div class="card">
-                            <div class="card-body">
-                                
-                                <div class="passangerDetailSec" id="pax-info" >
-                                    
-                                    <div class="row">    
-                                        <div class="col-12">
-                                            <div class="border-bottom mb-2 pb-2 d-flex justify-content-between align-items-center">
-                                                <h5 class="my-0 ">Passenger Details: </h5>
-                                                <a class="nameformat text-decoration-underline link-offset-2" type="button" data-bs-placement="left" tabindex="0" data-bs-toggle="popover" data-bs-content="check name format" data-bs-title="name format">Name Format info<i class="mdi mdi-information-outline ps-1"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="passangerContactDetail">
-                                    <div class="row d-flex justify-content-between align-items-start">
-                                        <div class="col-12">
-                                            <h5 class="border-bottom mb-2 pb-2">Contact information:</h5>
-                                            <div class="alert alert-info font-14" role="alert">
-                                                <i class="ri-information-line me-1 align-middle"></i><strong>Note:</strong> All communication related to booking
-                                                will be sent to this email address and mobile.
-                                            </div>
-                                        </div>  
-                                    </div>
-                                    <div class="row">                                                                      
-                                        <div class="col-12">
-                                            <div class="row">
-                                                <div class="col-12 col-md-2 mb-2 mb-md-0">
-                                                    <div class="form-floating">
-                                                        <input type="number" class="form-control" placeholder="" required="" name="contact[countrycode]" value="+61" > 
-                                                        <label for="">Country Code</label>
-                                                    </div>                                                                  
-                                                </div> 
-                                                <div class="col-12 col-md-4 mb-2 mb-md-0">
-                                                    <div class="form-floating">
-                                                        <input type="number" class="form-control" placeholder="" required="" name="contact[phone]">
-                                                        <label for="">Mobile No</label>
-                                                    </div>                                                               
-                                                </div>
-                                                <div class="col-12 col-md-4 mb-2 mb-md-0">                         
-                                                    <div class="form-floating">
-                                                        <input type="email" class="form-control" placeholder="" id="email" required="" name="contact[email]">
-                                                        <label for="email">Email</label>
-                                                    </div>                                    
-                                                </div>                                          
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                        </div>
-                        <div class="action-div mt-2 ms-auto text-end">
-                            <button type="submit" class="btn btn-primary">Create PNR</button>
-                        </div>
-                        </form>
-                    </div>
                 </div>
 
                 <!-- Start Price Info -->
@@ -535,9 +497,7 @@ module.exports = {
                     <div class="sticky-top-sec">
                         <div class="totalfare-sec shadow">
                             <ul class="totalfare-ul list-group list-group-flush p-2" id="price-info" > </ul>
-                            <ul class="list-unstyled px-2 pb-3">
-                                <li><i class="mdi mdi-chevron-right mdi-18px pe-1"></i><a type="button" class="text-decoration-underline link-offset-2" data-bs-toggle="modal" data-bs-target="#farerules">Full fare rules and conditions</a></li>
-                            </ul>
+                            
                         </div>
                         <!--
                         <div class="share-ticket-block">
@@ -557,9 +517,19 @@ module.exports = {
             </div>
             <!-- end Content -->
         </div>
-      
-        <!-- Flight detail popup -->
+        
+        <!-- Flight detail Offcanvas -->
         <div class="offcanvas offcanvas-end" tabindex="-1" id="flightDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
+            <div class="offcanvas-header pb-0">
+                <h3 class="offcanvasRightLabel fw-semibold">Flight Details</h3>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+            </div>
+        </div>
+
+        <!-- FARE detail Offcanvas -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="fareDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
             <div class="offcanvas-header pb-0">
                 <h3 class="offcanvasRightLabel fw-semibold">Flight Details</h3>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>

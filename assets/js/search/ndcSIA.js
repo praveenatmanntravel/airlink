@@ -17,6 +17,14 @@ const siaNDC_baggage = (o) => {
     return str;
 }
 
+const OriginDestination_from_FLT = (FLTid) => {
+    const FLT = DataLists[FLTid]
+    const SEGs = convert2Array(FLT?.PaxSegmentRefID)
+    // console.log('SEGs', DataLists[SEGs[0]], DataLists[SEGs[SEGs.length - 1]])
+    const s = `(${(DataLists[SEGs[0]])?.Dep?.IATA_LocationCode} ${(DataLists[SEGs[(SEGs.length - 1)]])?.Arrival.IATA_LocationCode})`
+    return s
+}
+
 const sia_journy = (o) => {
     var str = ``
     if (o?.length > 0) {
@@ -90,6 +98,7 @@ function sia_parse_to_flight_display(d) {
             } else {
                 s.push(o.JourneyOverview.JourneyPriceClass.PaxJourneyRefID)
             }
+
             if (legGroup.hasOwnProperty(s.toString())) {
                 legGroup[s.toString()].mPrice = (legGroup[s.toString()].mPrice < mPrice) ? legGroup[s.toString()].mPrice : mPrice
                 legGroup[s.toString()].OfferIDs?.push(o.OfferID)
@@ -149,7 +158,7 @@ function sia_parse_to_flight_display(d) {
                                 <div class="f-detail-sec depart-flight-info">
                                     <div class="row m-auto flight-header">
                                         <div class="col-12 p-0 position-relative table-responsive-lg d-flex justify-content-lg-end">
-                                            <div class="select-flight__fare-table economy-tbl flex-grow-1">
+                                            <div class="select-flight__fare-table economy-tbl flex-grow-1 d-none">
                                                 <div class="select-flight__fare-head-row">
                                                     <div class="select-flight__fare-title-wrap select-flight__farec-condition"><strong>fare conditions</strong></div>   
                                                 </div> 
@@ -193,7 +202,6 @@ function sia_parse_to_flight_display(d) {
                                                 </div>
                                             </div>  
                                             <div class="d-flex position-relative flight_fare_selection flex-grow-1" >
-                                            ${v.FLTs}
                                                 ${sia_bindFF(v.FLTs)}
                                             </div>
                                         </div>    
@@ -367,59 +375,150 @@ function sia_buildFTL(i) {
 }
 
 function sia_bindFF(i) {
+    var t = {}
 
     var str = ``
     $.each(legGroup[i].OfferIDs, (n, OfferID) => {
 
         const Offer = OffersGroup[OfferID]
+        // parsing data
+        const JourneyOverview = Offer.JourneyOverview
+
+        // Baggage
+        var Baggage = '<h4 class="text-start"><span class="badge text-bg-secondary"><i class="mdi mdi-bag-checked text-warning mdi-18px"></i> Baggage</span></h4>'
+        convert2Array(Offer?.BaggageAllowance).forEach((_) => {
+            const FBA = DataLists[_.BaggageAllowanceRefID]
+            const kg = FBA?.WeightAllowance?.MaximumWeightMeasure?.['#text'] || false
+            if (kg) {
+                Baggage += `<p class="mb-1" > ${OriginDestination_from_FLT(_.PaxJourneyRefID)} : ${FBA.TypeCode} ${kg} Kg </p>`
+            }
+        })
+
+        //Seat Selection
+
+        // PenaltyRefID
+        var Penalty = ` <h4 class="text-start"><span class="badge text-bg-secondary"><i class="mdi mdi-currency-usd text-warning mdi-18px"></i> Penalty</span></h5>`
+        convert2Array(Offer?.PenaltyRefID).forEach((PENid) => {
+            const PEN = DataLists[PENid]
+            Penalty += `<p class="mb-1" ><b>${PEN.DescText} ${PEN.hasOwnProperty("PenaltyAmount") ? PEN.PenaltyAmount : ``}</b></p>`
+        })
+
+        // TC
+        var seatSelection = ``
+        var TC = ``
+        convert2Array(JourneyOverview?.JourneyPriceClass).forEach((JourneyPrice) => {
+            const FF = DataLists[JourneyPrice?.PriceClassRefID]
+            TC += `<b>${OriginDestination_from_FLT(JourneyPrice?.PaxJourneyRefID)}</b>`
+            convert2Array(FF.Desc).forEach((_) => {
+                if (_.DescID == "SEATSELECTION") {
+                    seatSelection += `<p class="mb-1" >${OriginDestination_from_FLT(JourneyPrice?.PaxJourneyRefID)} : ${_.DescText}</p>`
+                }
+                TC += `<p class="mb-1" >${_.DescID} ${_.hasOwnProperty("DescText") ? _.DescText : ``}</p>`
+            })
+        })
+
+        if (seatSelection != '') {
+            seatSelection = `
+            <h4 class="text-start"><span class="badge text-bg-secondary"><i class="mdi mdi-seat-recline-extra text-warning mdi-18px"></i> Seat Selection</span></h4>
+            ${seatSelection}
+            `
+        }
 
         str += `
         <div class="select-flight__fare-table economy-tbl flex-grow-1">
             <div class="select-flight__fare-head-row">
-                <div class="select-flight__fare-title-wrap economy-color fw-bold">${DataLists[Offer.JourneyOverview.PriceClassRefID]?.['Name']}</div>
-            </div> 
+                <div class="select-flight__fare-title-wrap economy-color fw-bold" >${DataLists[JourneyOverview.PriceClassRefID]?.['Name']}</div>
+            </div>
             <div class="select-flight__fare-col select-flight__fare-col-footer-wrap">
                 <div class="select-flight__fare-col-footer bg-body-tertiary">
                     <h4 class="select-flight__fare-footer-price">
-                        <span class="fare-calculation fw-normal pe-1" type="button" data-bs-toggle="tooltip" data-bs-placement="left" aria-label="fare calculation" data-bs-original-title="fare calculation">
-                            <i class="mdi mdi-information-outline"></i>
-                        </span>
                         $ ${amount_format(Offer.OfferItem.Price.TotalAmount)}
+                    
+                        <span class="fare-calculation fw-normal pe-1" type="button" data-bs-toggle="tooltip" data-bs-placement="left" aria-label="fare calculation" data-bs-original-title="fare calculation" title="fare detail" >
+                            <i class="mdi mdi-information-outline" data-bs-toggle="offcanvas" data-bs-target="#fareDetailOffcanvas" aria-controls="offcanvasRight" OfferID="${OfferID}" provider="ndcSIA" title="fare detail" ></i>
+                        </span>
                     </h4> 
-                    <div style="overflow: auto" >${JSON.stringify(Offer?.OfferItem?.FareDetail)}</div>
+                    <div class="d-none" style="overflow: auto" >${JSON.stringify(Offer?.OfferItem?.FareDetail)}</div>
                     <a tabindex="0" href="#" class="btn btn-outline-primary btn-sm select_fare x_sia_offer_select" OfferID=${Offer.OfferID} provider="ndcSIA" >Select</a>
+                   
+
                 </div>
             </div> 
-            <div class="select-flight__fare-col summary-sec">
-                <div class="select-flight__fare-select"><span class="fare-select-text fw-bold">30kg + 7kg</span></div> 
+            <div class="select-flight__fare-col summary-sec text-start">
+                <div class="select-flight__fare-select"><span class="fare-select-text fw-bold text-start">${Baggage}</span></div> 
                 <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold complimentary">Complimentary (Standard &amp; Forward Zone Seats)</span>
+                    <span class="fare-select-text d-block fw-bold complimentary text-start">${seatSelection}</span>
+                </div>
+                <div class="select-flight__fare-select">
+                    <span class="fare-select-text d-block fw-bold text-start">${Penalty}</span>
                 </div>    
             </div> 
-            <div class="select-flight__fare-col summary-sec">
-                <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold">6,334 miles</span>
-                </div>
-                <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold">Allowed</span>
+            <div class="select-flight__fare-col summary-sec d-none">
+                
+                <div class="select-flight__fare-select d-none">
+                    <span class="fare-select-text d-block fw-bold">${TC}</span>
                 </div>    
-            </div> 
-            <div class="select-flight__fare-col summary-sec">
-                <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold">AUD 130</span>
-                </div>
-                <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold complimentary">Complimentary</span>
-                </div>
-                <div class="select-flight__fare-select">
-                    <span class="fare-select-text d-block fw-bold">AUD 130</span>
-                </div>
-                <div class="select-flight__fare-select">
-                    <span tabindex="0" class="fare-select-text fw-bold fs-6 farerules text-decoration-underline link-offset-2" type="button" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="Bottom popover">View More<i class="mdi mdi-chevron-right pe-1 fs-5"></i></span>
-                </div>
             </div>
         </div> 
         `
+    })
+
+    return str
+}
+
+function sia_buildFareDetails(OfferID) {
+
+    var str = ``
+    const Offer = OffersGroup[OfferID]
+    // parsing data
+    const JourneyOverview = Offer.JourneyOverview
+
+
+
+    // PenaltyRefID
+    const Penalty = convert2Array(Offer?.PenaltyRefID)
+    if (Penalty.length > 0) {
+        str += `
+        <h4 class="at-flight-details-journey-title text-primary mb-3 fw-semibold bg-light p-2 d-flex justify-content-between align-items-center">
+            <span><i class="mdi mdi-currency-usd pe-1"></i>Penalty</span>
+            <span class="font-15 text-secondary fw-normal">Through journey</span>
+        </h4>
+        <table class="table fs-6">
+        `
+
+        Penalty.forEach((PENid) => {
+            if (PENid.DescText == "Cancel not permitted")
+
+                if (["Change not permitted", "Reissue permitted", "Cancel not permitted"].includes(PENid.DescText)) {
+
+                }
+            const PEN = DataLists[PENid]
+            str += `<tr><th>${PEN.DescText}</th><td>${PEN.hasOwnProperty("PenaltyAmount") ? PEN.PenaltyAmount : ``}</td></tr>`
+        })
+
+        str += `</table>`
+    }
+
+
+    // TC
+    var TC = convert2Array(JourneyOverview?.JourneyPriceClass)
+
+    convert2Array(JourneyOverview?.JourneyPriceClass).forEach((JourneyPrice) => {
+        const FF = DataLists[JourneyPrice?.PriceClassRefID]
+
+        str += `
+        <h4 class="at-flight-details-journey-title text-primary mb-3 fw-semibold bg-light p-2 d-flex justify-content-between align-items-center">
+            <span><i class="mdi mdi-airplane pe-1"></i>${OriginDestination_from_FLT(JourneyPrice?.PaxJourneyRefID)}</span>
+            <span class="font-15 text-secondary fw-normal">Seagment</span>
+        </h4>
+        <table class="table fs-6">
+        `
+
+
+        convert2Array(FF.Desc).forEach((_) => {
+            str += `<tr><th>${_.DescID}</th><td>${_.hasOwnProperty("DescText") ? _.DescText : ``}</td></tr>`
+        })
+        str += `</table>`
     })
 
     return str
@@ -562,9 +661,11 @@ $('body').on('submit', '#SiadoPrice', function (event) {
 
     }).done(function (data) {
         console.log(data)
-        const OfferPriceRS = data.apiResp?.Envelope?.Body?.OfferPriceRS
+        const apiResp = JSON.parse(data?.apiResp)
+        const OfferPriceRS = apiResp.Envelope?.Body?.OfferPriceRS
+
         if (OfferPriceRS?.hasOwnProperty('Error')) {
-            alert(OfferPriceRS.Error?.[`DescText`])
+            alert(`${OfferPriceRS.Error?.[`DescText`]} `)
         } else {
             window.location.href = `64df02fd8312a4e7f7f8b7d1/createPNR?id=${data.sia_resp_id}`
         }
@@ -677,15 +778,22 @@ function parseFilter() {
     console.log(search_filters);
 }
 
-function fetchOfferPrice(id) {
-    sia_resp_id = id
-    const data = { sia_resp_id: sia_resp_id, 'do': 'getOfferPrice' }
-    $.ajax({
-        data: data, type: "POST", url: `/64df02fd8312a4e7f7f8b7d1/ndcSIA`, dataType: "json", encode: true,
-    }).done(function (d) {
-        //d = JSON.parse(d)
+function sia_parseDataForCreatePNR(d) {
 
-        const Response = d?.['apiResp']?.['Envelope']?.['Body']?.['OfferPriceRS']?.['Response']
+    //d = JSON.parse(d)
+    const OfferPriceRS = d?.['apiResp']?.['Envelope']?.['Body']?.['OfferPriceRS']
+    if (OfferPriceRS.hasOwnProperty('Error')) {
+        $("#message_head").html(`
+        <div class="col-lg-9">
+            <div class="alert alert-danger alert-dismissible text-bg-danger border-0 fade show" role="alert">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                [${OfferPriceRS.Error?.Code}] - ${OfferPriceRS.Error.DescText}.
+            </div>
+        </div
+        `)
+    } else if (OfferPriceRS.hasOwnProperty('Response')) {
+
+        const Response = OfferPriceRS?.['Response']
         console.log('Response', d, Response)
 
         sia_parseDataList(Response?.['DataLists'])
@@ -801,7 +909,7 @@ function fetchOfferPrice(id) {
                         // fare rules Penalty
                         const Penalty = FareComponent.FareRules?.Penalty
                         const PenaltyRefs = FareComponent?.FareRules?.Penalty?.['@_refs']?.split(" ")
-                        console.log('Penalty>', Penalty)
+                        //console.log('Penalty>', Penalty)
                         if (PenaltyRefs.length > 0) {
 
 
@@ -946,10 +1054,24 @@ function fetchOfferPrice(id) {
 
 
             //parsing PaxList
-            for (const [PaxID, pax] of Object.entries(paxList)) {
+            var str = ``
+            if (paxList || false) {
+                str += `
+                    <div class="row">    
+                        <div class="col-12">
+                            <div class="border-bottom mb-2 pb-2 d-flex justify-content-between align-items-center">
+                                <h5 class="my-0 ">Passenger Details: </h5>
+                                <a class="nameformat text-decoration-underline link-offset-2" type="button" data-bs-placement="left" tabindex="0" data-bs-toggle="popover" data-bs-content="check name format" data-bs-title="name format">Name Format info<i class="mdi mdi-information-outline ps-1"></i></a>
+                            </div>
+                        </div>
+                    </div>`
+                //$(`#pax-info`).append($(str))
 
 
-                var str = `
+                for (const [PaxID, pax] of Object.entries(paxList)) {
+
+
+                    str += `
                     <div class="row pb-2 mb-2">
                         <div class="col-md-1">
                             <h5><span>1</span>. ${pax.PTC}</h5>
@@ -986,8 +1108,64 @@ function fetchOfferPrice(id) {
                         </div>
                     </div> 
                     `
-                $(`#pax-info`).append($(str))
-                $(".dob").daterangepicker({
+                    //$(`#pax-info`).append($(str))
+                   
+
+                }
+
+                str += `
+                <div class="passangerContactDetail">
+                    <div class="row d-flex justify-content-between align-items-start">
+                        <div class="col-12">
+                            <h5 class="border-bottom mb-2 pb-2">Contact information:</h5>
+                            <div class="alert alert-info font-14" role="alert">
+                                <i class="ri-information-line me-1 align-middle"></i><strong>Note:</strong> All communication related to booking
+                                will be sent to this email address and mobile.
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="row">                                                                      
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12 col-md-2 mb-2 mb-md-0">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" placeholder="" required="" name="contact[countrycode]" value="+61" > 
+                                        <label for="">Country Code</label>
+                                    </div>                                                                  
+                                </div> 
+                                <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" placeholder="" required="" name="contact[phone]">
+                                        <label for="">Mobile No</label>
+                                    </div>                                                               
+                                </div>
+                                <div class="col-12 col-md-4 mb-2 mb-md-0">                         
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" placeholder="" id="email" required="" name="contact[email]">
+                                        <label for="email">Email</label>
+                                    </div>                                    
+                                </div>                                          
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `
+
+                $(`#pax-info`).append($(
+                    `
+                    <div class="traveller-info-sec" style="" >
+                        <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Traveller Information</h4>
+                        <form action="${$(`#pax-info`).attr('action-url')}" method="post" id="create-pnr-form" >
+                        <div class="card">
+                            <div class="card-body">${str}</div>
+                        </div>
+                        <div class="action-div mt-2 ms-auto text-end">
+                            <button type="submit" class="btn btn-primary">Create PNR</button>
+                        </div>
+                        </form>
+                    </div>
+                    `
+                    )).find(".dob").daterangepicker({
                     "autoApply": true,
                     showDropdowns: true,
                     maxDate: moment().format('YYYY-MM-DD'),
@@ -996,34 +1174,21 @@ function fetchOfferPrice(id) {
                     },
                     singleDatePicker: true
                 });
-
             }
 
 
         } else {
-
+            alert('Something went wrong [111]')
         }
-
-
-    }).fail(function (e) {
-        console.log('error', e)
-    })
-        .always(function () {
-            //event.target.classList.remove('processing')
-            search_panel('min')
-            //const myModalAlternative = new bootstrap.Modal(document.getElementById('confirmation'), { keyboard: false, backdrop: true })
-            //$('#confirmation').modal('show');
-        });
+    }
 }
 
-function build_FareDetail() {
 
-}
 
-function sia_service_to_string(ServiceDefinitionRefID) {
+function sia_service_to_string(DataList_RefID) {
     var s = ``
-    if (DataLists.hasOwnProperty(ServiceDefinitionRefID)) {
-        const ServiceDefinition = DataLists[ServiceDefinitionRefID]
+    if (DataLists.hasOwnProperty(DataList_RefID)) {
+        const ServiceDefinition = DataLists[DataList_RefID]
         switch (ServiceDefinition.Name) {
             case "Bag allowances":
                 const FBA = DataLists[ServiceDefinition.ServiceDefinitionAssociation?.BaggageAllowanceRefID] || false
@@ -1039,7 +1204,8 @@ function sia_service_to_string(ServiceDefinitionRefID) {
 
 function build_PNRview(x) {
     console.log(x);
-    var  user_access = x.access
+    var user_access = x.access
+    console.log("user_access", user_access)
     var d = x.pnrdetails
 
     // parsing data for pnr view
@@ -1446,7 +1612,7 @@ function build_PNRview(x) {
     // parsing OrderStatus-info
     str = ``
     console.log(`Order`, Order.OrderItem)
-    if (Order.OrderItem?.StatusCode == "NOT ENTITLED") {
+    if (1 || Order.OrderItem?.StatusCode == "NOT ENTITLED") {
         str = `
         <div class="traveller-info-sec" >
             <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Order Item\s</h4>
@@ -1468,9 +1634,10 @@ function build_PNRview(x) {
                         <div class="col-lg-2 text-end">
                             <form action="65dea3e81d2f7e4eeb111e5e/action" method="post" class="OrderItemForIssuance" >
                                 <input type="hidden" name="pnrid" value="${d._id}" /> 
-                                <input type="hidden" name="do" value="Issuance" /> 
-                                <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" /> 
-                                <button type="submit" class="btn btn-primary">Issue TKTT/EMD</button>
+                                <input type="hidden" name="do" value="Issuance" disabled/> 
+                                <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" />
+                                ${user_access.includes("t") ? `<input type="submit" name="do" value="Issue TKTT/EMD" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')"/>` : ``}
+                                ${user_access.includes("c") ? `<input type="submit" name="do" value="Cancel" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')" />` : ``}
                             </form>
                         </div>
                     </div>
@@ -1481,9 +1648,8 @@ function build_PNRview(x) {
     } else {
         $('#AfterTicket-Actions').html(`
         <div>
-            <button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Cancel/Refund</button>
-            <button type="button" class="btn btn-secondary" onClick="javascript:alert('Coming Soon...')">Reissue</button>
-            <button type="button" class="btn btn-success" onClick="javascript:alert('Coming Soon...')">Other</button>
+            ${user_access.includes("r") ? `<button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Refund</button>` : ``}
+            ${user_access.includes("r1") ? `<button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Reissue</button>` : ``}
         </div>
         `)
     }
@@ -1559,7 +1725,3 @@ function build_PNRview(x) {
     console.log(d);
 }
 
-
-function sia_issue() {
-
-}

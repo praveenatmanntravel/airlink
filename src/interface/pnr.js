@@ -44,9 +44,8 @@ module.exports = {
             <div class="row">
                 <div class="col-12 col-md-9" id="pnr_view_content" >
                     
-                    <div class="text-end pe-1 mb-1">
-                        
-                    </div>
+                    <div class="text-end pe-1 mb-1"> </div>
+                    
                     <div class="selected_flight-info " id="PaxJourneyList-info" ></div>
                     <div class="selected_flight-info " id="PaxList-info" ></div>
                     <div class="selected_flight-info " id="TicketDoc-info" ></div>
@@ -132,7 +131,7 @@ module.exports = {
         const pnrid = req.body?.pnrid
         const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         console.log('pnrdetails', pnrdetails)
-        return res.json({'pnrdetails': pnrdetails, provider: 'ndcSIA', 'user_access': req.access});
+        return res.json({'pnrdetails': pnrdetails, provider: 'ndcSIA', 'access': req.access});
     },
     PnrActivityLog: async (req, res, next) => {
         const pnrid = req.body?.pnrid

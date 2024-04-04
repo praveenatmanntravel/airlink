@@ -134,6 +134,7 @@ const buildFilter = () => {
 }
 
 buildFilter();
+
 const airportCity = (airport) => { return (AirportData.hasOwnProperty(airport) ? AirportData[airport]['city'] : '--') }
 
 const amount_format = (i) => (new Intl.NumberFormat().format(i))
@@ -143,7 +144,6 @@ $(`#searched`).on('click', 'button', function () {
 })
 
 $(document).ready(function () {
-
 
     $("#searchFlight").submit(function (event) {
 
@@ -293,7 +293,7 @@ function fetchForPNRView(pnrid) {
 
 
 const flightDetailOffcanvas = document.getElementById('flightDetailOffcanvas')
-flightDetailOffcanvas.addEventListener('show.bs.offcanvas', event => {
+flightDetailOffcanvas?.addEventListener('show.bs.offcanvas', event => {
 
     const button = event.relatedTarget
     const provider = button.getAttribute('provider')
@@ -307,6 +307,47 @@ flightDetailOffcanvas.addEventListener('show.bs.offcanvas', event => {
     }
     flightDetailOffcanvas.querySelector('.offcanvas-body').innerHTML = str
 })
+
+const fareDetailOffcanvas = document.getElementById('fareDetailOffcanvas')
+fareDetailOffcanvas?.addEventListener('show.bs.offcanvas', event => {
+
+    const button = event.relatedTarget
+    const provider = button.getAttribute('provider')
+    var str = ``
+    if (provider == 'ndcSIA') {
+        const OfferID = button.getAttribute('OfferID')
+        str = sia_buildFareDetails(OfferID)
+    }
+    if (provider == 'travelport') {
+
+    }
+    fareDetailOffcanvas.querySelector('.offcanvas-body').innerHTML = str
+})
+
+
+const fetchOfferPrice = (id) => {
+    sia_resp_id = id
+    const data = { sia_resp_id: sia_resp_id, 'do': 'getOfferPrice' }
+    $.ajax({
+        data: data, type: "POST", url: `/64df02fd8312a4e7f7f8b7d1/ndcSIA`, dataType: "json", encode: true,
+    }).done(function (d) {
+        console.log('Offer Pricing Response', d)
+        if (d?.provider == 'ndcSIA') {
+            sia_parseDataForCreatePNR(d)
+        } else if (d?.provider == 'travelport') {
+            alert('234, Travelport function not defined')
+        } else {
+            alert('231, Some function not defined')
+        }
+
+    }).fail(function (e) {
+        console.log('error', e)
+    }).always(function () {
+        
+    });
+}
+
+
 
 $(`body`).on('click', '.select_fare', (event) => {
     event.preventDefault()
@@ -438,7 +479,7 @@ $("#create-pnr-form").submit(function (event) {
 
 // display fare rule
 const fareRuleModel = document.getElementById('fareRuleModel')
-fareRuleModel.addEventListener('show.bs.model', event => {
+fareRuleModel?.addEventListener('show.bs.model', event => {
 
     const button = event.relatedTarget
     const provider = button.getAttribute('provider')
