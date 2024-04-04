@@ -26,7 +26,13 @@ router.post('/', async function (req, res, next) {
 
         const pnr_details = await mongodbClient.db('Airlink').collection('pnrs').findOne(
             { agency: new ObjectId(req.apiAuth?.agency), pnr: req.apiAuth?.pnr }, {projection:{ _id: 0, "provider": 1, "pnr": 1, "OR_json.Envelope.Body": 1 }})
-        _d = pnr_details
+            if(pnr_details){
+
+                _d = pnr_details
+            }else{
+                
+                _d = { success: false, message: 'No data found.' }
+            }
     } else {
         _d = { success: false, message: 'Not Authrised' }
     }
