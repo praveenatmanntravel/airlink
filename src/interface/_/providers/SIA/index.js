@@ -54,9 +54,9 @@ module.exports = {
     },
     flightAvailability: async (req, res, next) => {
 
-        const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
-        const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
-        return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
+        //const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
+        //const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
+        //return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
         const search_param = req.body;
         var nonce = CryptoJS.enc.Utf8.parse(CryptoJS.lib.WordArray.random(8));
         var nonceEncoded = nonce.toString(CryptoJS.enc.Base64);
