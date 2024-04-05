@@ -474,7 +474,7 @@ module.exports = {
             
             <!-- start message/alert -->
             <div class="row" id="message_head" >
-                <div class="col-lg-9">
+                <div class="col-lg-9 d-none">
                     <div class="alert alert-success alert-dismissible text-bg-success border-0 fade show" role="alert">
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                         PNR details added successfully.
@@ -489,7 +489,7 @@ module.exports = {
                     <div class="selected_flight-info " id="selected_flight-info" ></div>
                     <div class="selected_flight-info " id="selected_Fare-Detail" ></div>
                     <div class="passangerDetailSec" id="pax-info" action-url="/${req?.params?.interface}/ndcSIA" > </div>
-                    
+                    <br><br>
                 </div>
 
                 <!-- Start Price Info -->
@@ -513,7 +513,7 @@ module.exports = {
                     </div>
                 </div>
                 <!-- End Price Info -->
-
+               
             </div>
             <!-- end Content -->
         </div>

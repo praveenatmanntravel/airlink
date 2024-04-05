@@ -162,7 +162,7 @@ module.exports = {
                                                 <td>${pnr.queue}</td>
                                                 <td>${pnr.pnr}</td>
                                                 <td>${pnr.createdBy}</td>
-                                                <td>${pnr.date}</td>
+                                                <td>${new Date(pnr.createdAt).toLocaleString("en-US")}</td>
                                                 <td>pre</td>
                                                 <td><a href="/65dea3e81d2f7e4eeb111e5e?pnrid=${pnr._id}" type="button" class="btn btn-link btn-sm">View</a></td>
                                             </tr>`

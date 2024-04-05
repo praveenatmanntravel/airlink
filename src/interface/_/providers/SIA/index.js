@@ -10,10 +10,10 @@ const { json } = require('express');
 
 const SIA_Config = {
 
-    WSAP: `https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ`,
+    WSAP: `https://nodeA3.production.webservices.amadeus.com/1ASIWCLTSQ`,
     OID: `NDCSQ08SQ`,
     LSSUser: `WSSQASG`,
-    password: `WOLJW3jt`,
+    password: `wBeHzs3H`,
     countryCode: `AU`,
     aggregatorID: `GEN`,
     agencyID: `02362662`,
@@ -54,10 +54,9 @@ module.exports = {
     },
     flightAvailability: async (req, res, next) => {
 
-
-        const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
-        const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
-        return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
+        //const testing_sia_resp_id = `65ea542524ac6a73974b998d`;
+        //const a = await getLog(testing_sia_resp_id, `AirShoppingRSjson`)
+        //return { provider: 'ndcSIA', sia_resp_id: testing_sia_resp_id, apiResp: JSON.stringify(a) }
         const search_param = req.body;
         var nonce = CryptoJS.enc.Utf8.parse(CryptoJS.lib.WordArray.random(8));
         var nonceEncoded = nonce.toString(CryptoJS.enc.Base64);
@@ -261,7 +260,7 @@ module.exports = {
 
         var options = {
             'method': 'POST',
-            'url': 'https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ',
+            'url': SIA_Config.WSAP,
             'headers': {
                 'SOAPAction': 'http://webservices.amadeus.com/NDC_AirShopping_18.1',
                 'Content-Type': 'text/xml;charset=utf-8'
@@ -445,15 +444,14 @@ module.exports = {
     },
     OrderCreate: async (req, res, next) => {
 
+        var returnData = { error: 0, provider: 'ndcSIA' }
+
         const search_param = req.body;
         const sia_resp_id = req.body.sia_resp_id;
         const a = await getLog(sia_resp_id, `OfferPriceRSjson`)
 
         const paxList = a?.['Envelope']?.['Body']?.['OfferPriceRS']?.['Response']?.['DataLists']?.['PaxList']
         const Offer = a?.['Envelope']?.['Body']?.['OfferPriceRS']?.['Response']?.['PricedOffer']?.['Offer']
-
-        console.log('Offer', search_param)
-
 
         // preparing PaxList
         var PaxList = `
@@ -674,14 +672,18 @@ module.exports = {
         }
 
         console.log(jObj)
+        returnData.pnrid = pnrs.insertedId
+        returnData.apiResp = resStr
+        return returnData
 
-        return { provider: 'ndcSIA', pnr_id: pnrs.insertedId, apiResp: resStr }
+        return { provider: 'ndcSIA', pnrid: pnrs.insertedId, apiResp: resStr, }
     },
     Issuance: async (req, res, next) => {
+
         var returnData = { error: 0, provider: 'ndcSIA' }
+
         const pnrid = req.body?.pnrid
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
-
 
         const { rq, rs } = await OrderRetrieve(req.pnrdetails?.pnr)
         const json_OrderViewRS = (await parser.parse(rs))?.Envelope?.Body?.OrderViewRS;
@@ -697,7 +699,7 @@ module.exports = {
             returnData.message = json_OrderViewRS?.Errors.Error?.DescText || `Something went wrong.`
         }
         else {
-            
+
             const OrderViewRS_Order = json_OrderViewRS?.Response?.Order
             const OrderViewRS_OrderItem = Fn.convert2Array(OrderViewRS_Order?.OrderItem)
             console.log('OrderViewRS_OrderItem', OrderViewRS_Order, OrderViewRS_OrderItem)
@@ -815,7 +817,7 @@ module.exports = {
                 //fs.writeFileSync('./respJSON.txt', JSON.stringify(json_OrderViewRS));
                 const activityLog = {
                     agency: new ObjectId(req.session.agency._id),
-                    pnr_id: new ObjectId(pnrs.insertedId),
+                    pnr_id: new ObjectId(req.pnrdetails?._id),
                     activityBy: new ObjectId(req.session.auth._id),
                     activityAt: Date.now(),
                     heading: 'PNR_Issued',
@@ -844,7 +846,155 @@ module.exports = {
 
     },
     OrderCancel: async (req, res, next) => {
-        
+
+        var returnData = { error: 0, provider: 'ndcSIA' }
+        const pnrid = req.body?.pnrid
+        const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
+
+        const { rq, rs } = await OrderRetrieve(req.pnrdetails?.pnr)
+        const json_OrderViewRS = (await parser.parse(rs))?.Envelope?.Body?.OrderViewRS;
+        if (json_OrderViewRS.hasOwnProperty('Errors')) {
+
+            returnData.error = 1
+            returnData.message = json_OrderViewRS?.Errors.Error?.DescText || `Something went wrong.`
+        }
+        else {
+            const OrderViewRS_Order = json_OrderViewRS?.Response?.Order
+            const OrderViewRS_OrderID = OrderViewRS_Order?.OrderID
+            if (OrderViewRS_OrderID) {
+                var _Request = `
+            <Request>
+                <Order>
+                    <OrderID>${OrderViewRS_OrderID}</OrderID>
+                    <OwnerCode>${SIA_Config.airline}</OwnerCode>
+                </Order>
+                <ExpectedRefundAmount>
+                    <EquivAmount CurCode="ANY">0.00</EquivAmount>
+                </ExpectedRefundAmount>
+            </Request>
+        `
+                var reqBody = `
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sec="http://xml.amadeus.com/2010/06/Security_v1" xmlns:link="http://wsdl.amadeus.com/2010/06/ws/Link_v1" xmlns:ses="http://xml.amadeus.com/2010/06/Session_v3" xmlns:ord="http://www.iata.org/IATA/2015/00/2018.1/OrderCancelRQ" >
+                    ${xml_req_header(`http://webservices.amadeus.com/NDC_OrderCancel_18.1`)}
+                    <soapenv:Body>
+                        <OrderCancelRQ xmlns="http://www.iata.org/IATA/2015/00/2018.1/OrderCancelRQ">
+                            <PayloadAttributes>
+                                <Version>18.1</Version>
+                            </PayloadAttributes>
+                            <PointOfSale>
+                                <Country>
+                                    <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                                </Country>
+                            </PointOfSale>
+                            <Party>
+                                <Recipient>
+                                    <ORA>
+                                        <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                    </ORA>
+                                </Recipient>
+                                <Participant>
+                                    <Aggregator>
+                                        <AggregatorID></AggregatorID>
+                                    </Aggregator>
+                                </Participant>
+                                <Sender>
+                                    <TravelAgency>
+                                        <AgencyID>${SIA_Config.agencyID}</AgencyID>
+                                        <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
+                                        <Name>${SIA_Config.agencyName}</Name>
+                                    </TravelAgency>
+                                </Sender>
+                            </Party>
+                            ${_Request}
+                        </OrderCancelRQ>
+                    </soapenv:Body>
+                </soapenv:Envelope>`;
+                console.log(reqBody)
+
+
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "text/xml");
+                myHeaders.append("CHAR", "UTF-8");
+                myHeaders.append("SOAPAction", "http://webservices.amadeus.com/NDC_OrderCancel_18.1");
+
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: reqBody,
+                    redirect: 'follow'
+                };
+
+                const OC_rs_xml = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+                let OC_rs_json = await parser.parse(OC_rs_xml);
+                console.log('OC_rs_json', OC_rs_json)
+                const json_OrderCancelRS = OC_rs_json?.Envelope?.Body?.OrderCancelRS
+                if (json_OrderCancelRS.hasOwnProperty('Error')) {
+                    returnData.error = 1
+                    returnData.message = json_OrderCancelRS?.Error?.DescText || `Something went wrong.`
+                    await updateLog(req.pnrdetails?.log_id, {
+                        $push: {
+                            "OrderCancel": {
+                                rqTime: Date.now(),
+                                rq: reqBody,
+                                rs: OC_rs_xml,
+                                rsJson: OC_rs_json
+                            }
+                        }
+                    })
+                } else {
+                    const activityLog = {
+                        agency: new ObjectId(req.session.agency._id),
+                        pnr_id: new ObjectId(pnrid),
+                        activityBy: new ObjectId(req.session.auth._id),
+                        activityAt: Date.now(),
+                        heading: 'PNR_cancelled',
+                        //remark:     rmk
+                    }
+                    await Fn.ActivityLog_insert(activityLog)
+
+
+                    // updating pnr_retrive
+                    const { rq: OR_rq, rs: OR_rs } = await OrderRetrieve(OrderViewRS_OrderID)
+                    console.log('OR_rq, OR_rs', OR_rq, OR_rs)
+                    const OR_rs_json = await parser.parse(OR_rs)
+
+                    await mongodbClient.db('Airlink').collection('pnrs').updateOne(
+                        { _id: req.pnrdetails?._id },
+                        { $set: { queue: 'Refunded' }, },
+                        { upsert: true }
+                    )
+
+                    await updateLog(req.pnrdetails?.log_id, {
+                        $push: {
+                            "OrderRetrieve": {
+                                rqTime: Date.now(),
+                                rq: OR_rq,
+                                rs: OR_rs,
+                                rsJson: OR_rs_json
+                            },
+                            "OrderCancel": {
+                                rqTime: Date.now(),
+                                rq: reqBody,
+                                rs: OC_rs_xml,
+                                rsJson: OC_rs_json
+                            }
+                        }
+                    })
+
+                    returnData.error = 0
+                    returnData.reload = `_self`
+                    returnData.message = 'Pnr Cancelled!'
+                }
+
+                
+
+            }
+            else {
+                returnData.error = 1
+                returnData.message = 'UnSuccessful! A valid OrderId required.'
+            }
+        }
+        return returnData
     },
     view: (req, res, next) => {
         console.log('in search interface, do:view')
@@ -1059,7 +1209,7 @@ async function header(password) {
 
     var options = {
         'method': 'POST',
-        'url': 'https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ',
+        'url': SIA_Config.WSAP,
         'headers': {
             'SOAPAction': 'http://webservices.amadeus.com/NDC_AirShopping_18.1'
         },

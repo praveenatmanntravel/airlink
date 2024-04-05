@@ -31,13 +31,24 @@ module.exports = {
             <!-- end page title -->
             ${req.access}
             <!-- start message/alert -->
-            <div class="row">
-                <div class="col-lg-9">
-                    <div class="alert alert-success alert-dismissible text-bg-success border-0 fade show" role="alert">
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-                        PNR details added successfully.
-                    </div>
-                </div>
+            <div class="row" id="message_head" >
+                ${qry?.hasOwnProperty('pnrCreated') ?
+                `<div class="col-lg-9">
+                        <div class="alert alert-success alert-dismissible text-bg-success border-0 fade show" role="alert">
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            PNR Created Successfully!
+                        </div>
+                    </div>`: ``
+            }
+                ${qry?.hasOwnProperty('pnrTicketed') ?
+                `<div class="col-lg-9">
+                        <div class="alert alert-success alert-dismissible text-bg-success border-0 fade show" role="alert">
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            PNR <b>Ticketed</b> Successfully!
+                        </div>
+                    </div>`: ``
+            }
+                
             </div>
 
             <!-- Start Content -->
@@ -60,11 +71,7 @@ module.exports = {
                     <div class="sticky-top-sec">
                         <div class="totalfare-sec shadow">
                             <ul class="totalfare-ul list-group list-group-flush p-2" id="price-info" > </ul>
-                            <ul class="list-unstyled px-2 pb-3">
-                                <li>
-                                    <i class="mdi mdi-chevron-right mdi-18px pe-1"></i>
-                                    <a type="button" class="text-decoration-underline link-offset-2" data-bs-toggle="modal" data-bs-target="#fareRuleModel" provider="ndcSIA" >Full fare rules and conditions</a></li>
-                            </ul>
+                            
                         </div>
                         <div class="history-log shadow" id="Activity-info" > </div>
 
@@ -131,13 +138,45 @@ module.exports = {
         const pnrid = req.body?.pnrid
         const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         console.log('pnrdetails', pnrdetails)
-        return res.json({'pnrdetails': pnrdetails, provider: 'ndcSIA', 'access': req.access});
+        return res.json({ 'pnrdetails': pnrdetails, provider: 'ndcSIA', 'access': req.access });
     },
     PnrActivityLog: async (req, res, next) => {
         const pnrid = req.body?.pnrid
         const activityLogs = await mongodbClient.db('Airlink').collection('activity_log').find({ pnr_id: new ObjectId(pnrid) }).toArray()
         console.log('activityLogs', activityLogs)
         return res.json(activityLogs);
+    },
+    Issuance: async (req, res, next) => {
+        const pnrid = req.body?.pnrid
+        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        req.pnrdetails = pnrdetails
+        var tp_res
+        if (pnrdetails?.provider == 'ndcSIA') {
+            const SIA = require('./_/providers/SIA/index.js')
+            tp_res = await SIA.Issuance(req, res, next);
+
+        } else if (pnrdetails?.provider == 'travelport') {
+            
+
+        }
+
+        return res.json(tp_res)
+    },
+    CancelPnr: async (req, res, next) => {
+        const pnrid = req.body?.pnrid
+        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        req.pnrdetails = pnrdetails
+        var tp_res
+        if (pnrdetails?.provider == 'ndcSIA') {
+            const SIA = require('./_/providers/SIA/index.js')
+            tp_res = await SIA.OrderCancel(req, res, next);
+
+        } else if (pnrdetails?.provider == 'travelport') {
+            
+
+        }
+
+        return res.json(tp_res)
     },
     action: async (req, res, next) => {
 

@@ -409,7 +409,7 @@ function sia_bindFF(i) {
         convert2Array(JourneyOverview?.JourneyPriceClass).forEach((JourneyPrice) => {
             const FF = DataLists[JourneyPrice?.PriceClassRefID]
             TC += `<b>${OriginDestination_from_FLT(JourneyPrice?.PaxJourneyRefID)}</b>`
-            convert2Array(FF.Desc).forEach((_) => {
+            convert2Array(FF?.Desc).forEach((_) => {
                 if (_.DescID == "SEATSELECTION") {
                     seatSelection += `<p class="mb-1" >${OriginDestination_from_FLT(JourneyPrice?.PaxJourneyRefID)} : ${_.DescText}</p>`
                 }
@@ -963,9 +963,9 @@ function sia_parseDataForCreatePNR(d) {
                         <td colspan="6" class="accordion-collapse collapse" id="FareRule_${FareDetailNumId}"  data-bs-parent="#PaxList-info" >
                             <div class="accordion-body"> 
                                 <div class="modal-body">
+                                    ${OtherDetails}
                                     ${tabs}
                                     ${tabBody}
-                                    ${OtherDetails}
                                 </div>
                             </div>
                         </td>
@@ -1008,9 +1008,9 @@ function sia_parseDataForCreatePNR(d) {
                 <li class="list-group-item base-fare">
                     <a class="d-flex justify-content-between align-items-center link-secondary" data-bs-toggle="collapse" href="#baseFare" role="button" aria-expanded="false" aria-controls="baseFare">
                         <span class="fw-normal title-cls">Base Fare</span>    
-                        <span class="fw-semibold totalbasefare price">$ ${amount_format(Price.BaseAmount['#text'])}<i class="ps-2 mdi mdi-chevron-down fs-4"></i></span>
+                        <span class="fw-semibold totalbasefare price">$ ${amount_format(Price.BaseAmount['#text'])}<i class="ps-2 mdi mdi-chevron-down fs-4 d-none"></i></span>
                     </a>
-                    <div class="collapse" id="baseFare">
+                    <div class="collapse d-none" id="baseFare">
                         <div class="d-flex justify-content-between pt-2 align-items-center fs-6 text-secondary-emphasis">
                             <span>Adult(s) (1 X $1118.05)</span>
                             <span class="fw-normal totalbasefare price">$1118.05</span>
@@ -1025,9 +1025,9 @@ function sia_parseDataForCreatePNR(d) {
                 <li class="list-group-item base-fare">
                     <a class="d-flex justify-content-between align-items-center link-secondary" data-bs-toggle="collapse" href="#TaxSummary" role="button" aria-expanded="false" aria-controls="baseFare">
                         <span class="fw-normal title-cls">Tax Summary Fare</span>    
-                        <span class="fw-semibold totalbasefare price">$ ${Price.TaxSummary?.TotalTaxAmount['#text']}<i class="ps-2 mdi mdi-chevron-down fs-4"></i></span>
+                        <span class="fw-semibold totalbasefare price">$ ${Price.TaxSummary?.TotalTaxAmount['#text']}<i class="ps-2 mdi mdi-chevron-down fs-4 d-none"></i></span>
                     </a>
-                    <div class="collapse" id="TaxSummary">
+                    <div class="collapse d-none" id="TaxSummary">
                         <div class="d-flex justify-content-between pt-2 align-items-center fs-6 text-secondary-emphasis">
                             <span>Adult(s) (1 X $1118.05)</span>
                             <span class="fw-normal totalbasefare price">$1118.05</span>
@@ -1079,7 +1079,7 @@ function sia_parseDataForCreatePNR(d) {
                         
                         <div class="col-md-2 mb-2 mb-md-0">
                             <div class="form-floating">
-                            <select class="form-select" name="PaxData[${PaxID}][title]" >
+                            <select class="form-select" name="PaxData[${PaxID}][title]" required>
                                 <option selected="">select</option>
                                 <option>Mr</option>
                                 <option>Mrs</option>
@@ -1102,15 +1102,13 @@ function sia_parseDataForCreatePNR(d) {
                         </div>
                         <div class="col-md-3 mb-2 mb-md-0">
                             <div class="form-floating">
-                            <input class="form-control adult dob" type="text" placeholder=" " required=""name="PaxData[${PaxID}][dob]" >
+                            <input class="form-control adult dob" type="text"  name="PaxData[${PaxID}][dob]" >
                             <label for="">DOB</label>
                             </div>
                         </div>
                     </div> 
                     `
                     //$(`#pax-info`).append($(str))
-                   
-
                 }
 
                 str += `
@@ -1375,7 +1373,7 @@ function build_PNRview(x) {
                 <div class="tab-pane fade ${active ? `show active` : ``}" id="a_${Pax.PaxID}_${FareComponent.SegmentRefs}" role="tabpanel"  tabindex="0">
                     <dl class="row mb-0">
                         <dt class="col-sm-3 border-bottom py-2">Fare Type</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${DataLists[FareComponent.PriceClassRef].Name}</dd>
+                        <dd class="col-sm-9 border-bottom py-2 mb-0">${DataLists[FareComponent.PriceClassRef]?.Name}</dd>
                                 
                         <dt class="col-sm-3 border-bottom py-2">Cabin Type</dt>
                         <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.CabinType?.CabinTypeName['#text']}</dd>
@@ -1474,9 +1472,9 @@ function build_PNRview(x) {
                 <td colspan="6" class="accordion-collapse collapse" id="FareRule_${Pax.PaxID}"  data-bs-parent="#PaxList-info" >
                     <div class="accordion-body"> 
                         <div class="modal-body">
+                            ${OtherDetails}
                             ${tabs}
                             ${tabBody}
-                            ${OtherDetails}
                         </div>
                     </div>
                 </td>
@@ -1612,32 +1610,35 @@ function build_PNRview(x) {
     // parsing OrderStatus-info
     str = ``
     console.log(`Order`, Order.OrderItem)
-    if (1 || Order.OrderItem?.StatusCode == "NOT ENTITLED") {
+    if ( Order.OrderItem?.StatusCode == "NOT ENTITLED") {
         str = `
         <div class="traveller-info-sec" >
             <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Order Item\s</h4>
             <div class="card">
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <div class="col-lg-2">
+                        <div class="col-lg-4 cal-xl-3">
                             <small class="badge badge-primary-lighten">Order ID</small>
                             <h5>SQ_6QW7ND</h5>
                         </div>
-                        <div class="col-lg-3">
+                        <div class="col-lg-4 cal-xl-3">
                             <small class="badge badge-primary-lighten">Price Garuntee Time Limit</small>
                             <h5>${sia_date(Order.OrderItem?.PriceGuaranteeTimeLimitDateTime)}</h5>
                         </div>
-                        <div class="col-lg-5">
+                        <div class="col-lg-4 cal-xl-3">
                             <small class="badge badge-primary-lighten">Price</small>
-                            <h5>${Order.OrderItem?.Price?.BaseAmount?.['#text']} + ${Order.OrderItem?.Price?.TaxSummary?.TotalTaxAmount?.['#text']} = ${Order.OrderItem?.Price?.TaxSummary?.TotalTaxAmount?.['#text']}</h5>
+                            <h5>${Order.OrderItem?.Price?.BaseAmount?.['#text']} + ${Order.OrderItem?.Price?.TaxSummary?.TotalTaxAmount?.['#text']} = <b>${Order.OrderItem?.Price?.TotalAmount?.['#text']} ${Order.OrderItem?.Price?.TotalAmount?.['@_CurCode']}</b></h5>
                         </div>
-                        <div class="col-lg-2 text-end">
-                            <form action="65dea3e81d2f7e4eeb111e5e/action" method="post" class="OrderItemForIssuance" >
+                        <div class="col-lg-12 cal-xl-3 text-end">
+                            <form action="65dea3e81d2f7e4eeb111e5e/Issuance" method="post" class="PnrViewAction d-inline " >
                                 <input type="hidden" name="pnrid" value="${d._id}" /> 
-                                <input type="hidden" name="do" value="Issuance" disabled/> 
                                 <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" />
-                                ${user_access.includes("t") ? `<input type="submit" name="do" value="Issue TKTT/EMD" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')"/>` : ``}
-                                ${user_access.includes("c") ? `<input type="submit" name="do" value="Cancel" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')" />` : ``}
+                                ${user_access.includes("t") ? `<button type="submit" class="btn btn-primary">Issue TKTT/EMD</button>` : ``}
+                            </form>
+                            <form action="65dea3e81d2f7e4eeb111e5e/CancelPnr" method="post" class="PnrViewAction d-inline " >
+                                <input type="hidden" name="pnrid" value="${d._id}" /> 
+                                <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" />
+                                ${user_access.includes("c") ? `<button type="submit" class="btn btn-primary" >Cancel</button>` : ``}
                             </form>
                         </div>
                     </div>
@@ -1647,7 +1648,11 @@ function build_PNRview(x) {
     `
     } else {
         $('#AfterTicket-Actions').html(`
-        <div>
+            <form action="65dea3e81d2f7e4eeb111e5e/CancelPnr" method="post" class="PnrViewAction d-inline " >
+                <input type="hidden" name="pnrid" value="${d._id}" /> 
+                <input type="hidden" name="OfferID" value="${Order.OrderItem?.OrderItemID}" />
+                ${user_access.includes("c") ? `<button type="submit" class="btn btn-primary" >Cancel</button>` : ``}
+            </form>
             ${user_access.includes("r") ? `<button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Refund</button>` : ``}
             ${user_access.includes("r1") ? `<button type="button" class="btn btn-primary" onClick="javascript:alert('Coming Soon...')">Reissue</button>` : ``}
         </div>
@@ -1665,7 +1670,7 @@ function build_PNRview(x) {
                 <span class="fw-normal title-cls">Base Fare</span>    
                 <span class="fw-semibold totalbasefare price">$ ${amount_format(TotalPrice.BaseAmount['#text'])}<i class="ps-2 mdi mdi-chevron-down fs-4"></i></span>
             </a>
-            <div class="collapse" id="baseFare">
+            <div class="collapse d-none" id="baseFare">
                 <div class="d-flex justify-content-between pt-2 align-items-center fs-6 text-secondary-emphasis">
                     <span>Adult(s) (1 X $1118.05)</span>
                     <span class="fw-normal totalbasefare price">$1118.05</span>
@@ -1682,7 +1687,7 @@ function build_PNRview(x) {
                 <span class="fw-normal title-cls">Tax Summary Fare</span>    
                 <span class="fw-semibold totalbasefare price">$ ${TotalPrice.TaxSummary?.TotalTaxAmount['#text']}<i class="ps-2 mdi mdi-chevron-down fs-4"></i></span>
             </a>
-            <div class="collapse" id="TaxSummary">
+            <div class="collapse d-none" id="TaxSummary">
                 <div class="d-flex justify-content-between pt-2 align-items-center fs-6 text-secondary-emphasis">
                     <span>Adult(s) (1 X $1118.05)</span>
                     <span class="fw-normal totalbasefare price">$1118.05</span>

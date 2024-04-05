@@ -140,7 +140,8 @@ const airportCity = (airport) => { return (AirportData.hasOwnProperty(airport) ?
 const amount_format = (i) => (new Intl.NumberFormat().format(i))
 
 $(`#searched`).on('click', 'button', function () {
-    search_panel('form')
+    location.reload()
+    //search_panel('form')
 })
 
 $(document).ready(function () {
@@ -272,7 +273,7 @@ function fetchForPNRView(pnrid) {
     $.ajax({
         data: data, type: "POST", url: `/65dea3e81d2f7e4eeb111e5e/dataForPnrView`, dataType: "json", encode: true,
     }).done(function (d) {
-
+        console.log('fetchForPNRView', d)
         if (d.provider == 'ndcSIA') {
             build_PNRview(d)
         }
@@ -343,7 +344,7 @@ const fetchOfferPrice = (id) => {
     }).fail(function (e) {
         console.log('error', e)
     }).always(function () {
-        
+
     });
 }
 
@@ -369,7 +370,6 @@ $(`body`).on('click', '.select_fare', (event) => {
 // TKTT/EMD issuence
 $("#pnr_view_content").on('submit', 'form.OrderItemForIssuance', function (event) {
 
-
     event.preventDefault();
     event.target.classList.add('processing')
 
@@ -385,7 +385,13 @@ $("#pnr_view_content").on('submit', 'form.OrderItemForIssuance', function (event
     $.ajax({
         data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
     }).done(function (data) {
-        data = data;
+
+        if (data.hasOwnProperty('message')) {
+            alert(data.message)
+        }
+        if (data.hasOwnProperty('reload')) {
+            location.reload()
+        }
 
         console.log(data)
 
@@ -398,6 +404,44 @@ $("#pnr_view_content").on('submit', 'form.OrderItemForIssuance', function (event
         });
 
 });
+
+$("#pnr_view_content").on('submit', 'form.PnrViewAction', function (event) {
+
+    event.preventDefault();
+    event.target.classList.add('processing')
+
+    //$(event.target).addClass('processing')
+    //return false
+    var form_action = event.target.getAttribute("action");
+    var form_method = event.target.getAttribute("method");
+    //alert(form_action) return
+    var error = false;
+    var fData = {};
+    ($(this).serializeArray()).map(e => { fData[e.name] = e.value });
+    console.log('fData', fData)
+
+    $.ajax({
+        data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
+    }).done(function (data) {
+        if (data.hasOwnProperty('message')) {
+            alert(data.message)
+        }
+        if (data.hasOwnProperty('reload')) {
+            location.reload()
+        }
+
+        console.log(data)
+
+    })
+        .fail(function (e) {
+            console.log('error', e)
+        })
+        .always(function () {
+            event.target.classList.remove('processing')
+        });
+
+});
+
 
 // fetch ActivityLog of a PNR
 
@@ -460,11 +504,9 @@ $("#create-pnr-form").submit(function (event) {
 
     $.ajax({
         data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
-    }).done(function (data) {
-        data = data;
-
-        console.log(data)
-
+    }).done(function (d) {
+        console.log('PnrCreateResp', d)
+        window.location.href = `65dea3e81d2f7e4eeb111e5e/?pnrid=${d.pnrid}&pnrCreated=1`
     })
         .fail(function (e) {
             console.log('error', e)
