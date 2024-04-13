@@ -148,7 +148,7 @@ router.post('/', async function (req, res, next) {
   var post = req.body;
   const { email, agency, password } = post;
   console.log('email', email, 'password', password)
-  if (validator.isEmail(email) && /*ObjectId.isValid(agent), */ password.length > 2 && password.length < 10) {
+  if (validator.isEmail(email) && /*ObjectId.isValid(agent), */ password.length > 2 /* && password.length < 10 */ ) {
     const _user = await mongodbClient.db('Airlink').collection('users').findOne({ agency: new ObjectId(agency), email: email, password: password });
     console.log('_user', _user)
     if (_user != null) {

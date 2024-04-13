@@ -14,10 +14,8 @@ var current_CatalogProductOffering_sequence = 1
 var TP_app_token = '';
 
 
-
 const tp_duration = (i) => i.replace('P', '').replace('T', '').replace('H', 'h ').replace('M', 'm')
 const tp_dateformat = (i) => (new Date(i)).toDateString()
-
 
 
 function tp_parse_to_flight_display(d) {

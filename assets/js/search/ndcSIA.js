@@ -1080,10 +1080,10 @@ function sia_parseDataForCreatePNR(d) {
                         <div class="col-md-2 mb-2 mb-md-0">
                             <div class="form-floating">
                             <select class="form-select" name="PaxData[${PaxID}][title]" required>
-                                <option selected="">select</option>
+                                <option selected="" >select</option>
                                 <option>Mr</option>
                                 <option>Mrs</option>
-                                <option value="1">Miss</option>
+                                <option>Miss</option>
                             </select>
                             <label for="selectTitle">Title</label>
                             </div> 
@@ -1102,7 +1102,7 @@ function sia_parseDataForCreatePNR(d) {
                         </div>
                         <div class="col-md-3 mb-2 mb-md-0">
                             <div class="form-floating">
-                            <input class="form-control adult dob" type="text"  name="PaxData[${PaxID}][dob]" >
+                            <input class="form-control adult dob" type="text"  name="PaxData[${PaxID}][dob]" autocomplete="off" >
                             <label for="">DOB</label>
                             </div>
                         </div>
@@ -1163,15 +1163,19 @@ function sia_parseDataForCreatePNR(d) {
                         </form>
                     </div>
                     `
-                    )).find(".dob").daterangepicker({
+                )).find(".dob").daterangepicker({
                     "autoApply": true,
                     showDropdowns: true,
+                    autoUpdateInput: false,
                     maxDate: moment().format('YYYY-MM-DD'),
                     "locale": {
                         "format": "YYYY-MM-DD"
                     },
                     singleDatePicker: true
+                }).on("apply.daterangepicker", function (e, picker) {
+                    picker.element.val(picker.startDate.format(picker.locale.format));
                 });
+                ;
             }
 
 
@@ -1323,8 +1327,7 @@ function build_PNRview(x) {
 
     str = ``
     var PaxList = convert2Array(Response.DataLists?.PaxList?.Pax)
-    var FareDetail = convert2Array(Order?.OrderItem?.FareDetail)
-
+    console.log('FareDetail >>>>>>>>>', Order, FareDetail)
     $.each(PaxList, (n, Pax) => {
         str += `
         <tr>
@@ -1339,147 +1342,157 @@ function build_PNRview(x) {
                 </button>
             </td>
         </tr>`
+        //
+        var OrderItems = convert2Array(Order?.OrderItem)
+        $.each(OrderItems, (n, OrderItem) => {
 
-        const [_FareDetail] = FareDetail.filter((e) => e.PassengerRefs == Pax.PaxID)
-        //parsing price
-        if (_FareDetail) {
+            var FareDetail = convert2Array(OrderItem?.FareDetail)
+            
+            const [_FareDetail] = FareDetail.filter((e) => e.PassengerRefs == Pax.PaxID)
+            
+            console.log('_FareDetail ++++++++++++++++', _FareDetail)
 
-            // tab
-            var tabs = `
-            <ul class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden border-bottom-0" style="margin-bottom:-1px" id="fareruleTab" role="tablist">`
-            var tabBody = `
-            <div class="tab-content px-3 bg-secondary-subtle border" id="myTabContent">`
-            var active = `active`
+            //parsing price
+            if (_FareDetail) {
 
-            var OtherDetails = `<div class="py-2">`
+                // tab
+                var tabs = `
+                <ul class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden border-bottom-0" style="margin-bottom:-1px" id="fareruleTab" role="tablist">`
+                var tabBody = `
+                <div class="tab-content px-3 bg-secondary-subtle border" id="myTabContent">`
+                var active = `active`
 
+                var OtherDetails = `<div class="py-2">`
 
-            _FareDetail.FareComponent?.forEach((FareComponent) => {
-                const _Service = Order.OrderItem.Service.filter((e) => e.ServiceID == `${FareComponent.SegmentRefs}_${Pax.PaxID}`)
+                _FareDetail?.FareComponent?.forEach((FareComponent) => {
+                    const _Service = OrderItem?.Service?.filter((e) => e.ServiceID == `${FareComponent.SegmentRefs}_${Pax.PaxID}`)
 
-                tabs += `
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link d-flex align-items-center ${active}"  type="button" data-bs-toggle="tab" data-bs-target="#a_${Pax.PaxID}_${FareComponent.SegmentRefs}" aria-controls="farerulede_flight-tab-pane" aria-expanded="false">
-                        <div class="airline_ico">
-                            <i class="mdi mdi-airplane fs-3"></i>
-                        </div>
-                        <div class="ms-2 segment_detail text-start">
-                            <div class="fw-bold">${DataLists[FareComponent.SegmentRefs].Dep.IATA_LocationCode} - ${DataLists[FareComponent.SegmentRefs].Arrival.IATA_LocationCode}</div>
-                        </div>
-                    </a>
-                </li>`
+                    tabs += `
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link d-flex align-items-center ${active}"  type="button" data-bs-toggle="tab" data-bs-target="#a_${Pax.PaxID}_${FareComponent.SegmentRefs}" aria-controls="farerulede_flight-tab-pane" aria-expanded="false">
+                            <div class="airline_ico">
+                                <i class="mdi mdi-airplane fs-3"></i>
+                            </div>
+                            <div class="ms-2 segment_detail text-start">
+                                <div class="fw-bold">${DataLists[FareComponent.SegmentRefs].Dep.IATA_LocationCode} - ${DataLists[FareComponent.SegmentRefs].Arrival.IATA_LocationCode}</div>
+                            </div>
+                        </a>
+                    </li>`
 
-                tabBody += `
-                <div class="tab-pane fade ${active ? `show active` : ``}" id="a_${Pax.PaxID}_${FareComponent.SegmentRefs}" role="tabpanel"  tabindex="0">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-3 border-bottom py-2">Fare Type</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${DataLists[FareComponent.PriceClassRef]?.Name}</dd>
-                                
-                        <dt class="col-sm-3 border-bottom py-2">Cabin Type</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.CabinType?.CabinTypeName['#text']}</dd>
-                        
-                        <dt class="col-sm-3 border-bottom py-2">Fare Basis Code</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.FareBasisCode?.Code}</dd>`
-
-                // fare rules Penalty
-                const Penalty = FareComponent.FareRules?.Penalty
-                if (Penalty) {
-
-                    if (Penalty.hasOwnProperty('@_CancelFeeInd'))
-                        tabBody += `
-                        <dt class="col-sm-3 border-bottom py-2">Cancellation/Refund </dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${Penalty['@_CancelFeeInd']}</dd>
-                    `
-                    if (Penalty.hasOwnProperty('@_ChangeFeeInd'))
-                        tabBody += `
-                        <dt class="col-sm-3 border-bottom py-2">Itinerary Change </dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${Penalty['@_ChangeFeeInd']}</dd>
-                    `
                     tabBody += `
+                    <div class="tab-pane fade ${active ? `show active` : ``}" id="a_${Pax.PaxID}_${FareComponent.SegmentRefs}" role="tabpanel"  tabindex="0">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-3 border-bottom py-2">Fare Type</dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${DataLists[FareComponent.PriceClassRef]?.Name}</dd>
+                                    
+                            <dt class="col-sm-3 border-bottom py-2">Cabin Type</dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.CabinType?.CabinTypeName['#text']}</dd>
+                            
+                            <dt class="col-sm-3 border-bottom py-2">Fare Basis Code</dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${FareComponent.FareBasis?.FareBasisCode?.Code}</dd>`
+
+                    // fare rules Penalty
+                    const Penalty = FareComponent.FareRules?.Penalty
+                    if (Penalty) {
+
+                        if (Penalty.hasOwnProperty('@_CancelFeeInd'))
+                            tabBody += `
+                            <dt class="col-sm-3 border-bottom py-2">Cancellation/Refund </dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${Penalty['@_CancelFeeInd']}</dd>
                         `
-                    var rmk = ''
-                    Penalty?.Details?.Detail.forEach((Detail) => {
-
-                        Detail.Amounts?.Amount?.forEach((Amount) => {
-                            rmk += parseFloat(Amount.CurrencyAmountValue['#text']) > 0 ? `<p class="" ><b>${Detail.Type}</b> - <span class="text-decoration-underline link-offset-1 fw-semibold" >${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']}</span> - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` : ``
-                        })
-
-                    })
-                    tabBody += rmk.trim() != '' ? `<dt class="col-sm-3 border-bottom py-2">Penalty Amount </dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">${rmk}</dd>` : ``
-
-                    /*
-                    Penalty?.Details?.Detail.forEach((Detail) => {
+                        if (Penalty.hasOwnProperty('@_ChangeFeeInd'))
+                            tabBody += `
+                            <dt class="col-sm-3 border-bottom py-2">Itinerary Change </dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${Penalty['@_ChangeFeeInd']}</dd>
+                        `
                         tabBody += `
-                        <dt class="col-sm-3 border-bottom py-2">Penalty ${Detail.Type}</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">`
+                        `
                         var rmk = ''
-                        Detail.Amounts?.Amount?.forEach((Amount) => {
-                            if (parseFloat(Amount.CurrencyAmountValue['#text']) > 0) {
-                                rmk = `<p class="text-primary" ><b>${Detail.Type}</b> - ${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` + rmk
-                            } else {
-                                rmk += `<p><b>${Amount.AmountApplication}</b> ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>`
-                            }
+                        Penalty?.Details?.Detail.forEach((Detail) => {
+
+                            Detail.Amounts?.Amount?.forEach((Amount) => {
+                                rmk += parseFloat(Amount.CurrencyAmountValue['#text']) > 0 ? `<p class="" ><b>${Detail.Type}</b> - <span class="text-decoration-underline link-offset-1 fw-semibold" >${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']}</span> - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` : ``
+                            })
+
                         })
-                        tabBody += `
-                            ${rmk}
-                        </dd>`
-                    })/crm/agent/1.0
-                    */
-                    _Service?.forEach((Service) => {
-                        tabBody += `
-                        <dt class="col-sm-3 border-bottom py-2">Service</dt>
-                        <dd class="col-sm-9 border-bottom py-2 mb-0">Status: ${Service['StatusCode']} ${sia_service_to_string(Service?.ServiceAssociations?.ServiceDefinitionRef?.ServiceDefinitionRefID)}</dd>
-                    `
+                        tabBody += rmk.trim() != '' ? `<dt class="col-sm-3 border-bottom py-2">Penalty Amount </dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">${rmk}</dd>` : ``
+
+                            /*
+                            Penalty?.Details?.Detail.forEach((Detail) => {
+                                tabBody += `
+                                <dt class="col-sm-3 border-bottom py-2">Penalty ${Detail.Type}</dt>
+                                <dd class="col-sm-9 border-bottom py-2 mb-0">`
+                                var rmk = ''
+                                Detail.Amounts?.Amount?.forEach((Amount) => {
+                                    if (parseFloat(Amount.CurrencyAmountValue['#text']) > 0) {
+                                        rmk = `<p class="text-primary" ><b>${Detail.Type}</b> - ${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` + rmk
+                                    } else {
+                                        rmk += `<p><b>${Amount.AmountApplication}</b> ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>`
+                                    }
+                                })
+                                tabBody += `
+                                    ${rmk}
+                                </dd>`
+                            })/crm/agent/1.0
+                            */
+                        _Service?.forEach((Service) => {
+                            tabBody += `
+                            <dt class="col-sm-3 border-bottom py-2">Service</dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">Status: ${Service['StatusCode']} ${sia_service_to_string(Service?.ServiceAssociations?.ServiceDefinitionRef?.ServiceDefinitionRefID)}</dd>
+                            `
+                        })
+                    }
+
+
+
+                    tabBody += `        
+                        </dl>
+                    </div>`
+                    active = ``
+                })
+                tabs += `
+                </ul>`
+
+
+                const Price = _FareDetail.Price || false
+                if (Price) {
+                    OtherDetails += `<div class="fare-breakage" > BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b></div><b>Tax Breakdown: </b>`
+                    Price.Taxes?.Breakdown?.Tax.forEach((Tax) => {
+                        OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']};  `
                     })
                 }
 
-
-
-                tabBody += `        
-                    </dl>
-                </div>`
-                active = ``
-            })
-            tabs += `
-            </ul>`
-
-
-            const Price = _FareDetail.Price || false
-            if (Price) {
-                OtherDetails += `<div class="fare-breakage" > BaseAmount ${Price.BaseAmount['#text']} + Tax ${Price.Taxes?.Total?.['#text']} = <b>${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['#text']} ${Price.TotalAmount?.DetailCurrencyPrice?.Total?.['@_Code']}</b></div><b>Tax Breakdown: </b>`
-                Price.Taxes?.Breakdown?.Tax.forEach((Tax) => {
-                    OtherDetails += `${Tax.Nation}.${Tax.TaxCode} ${Tax.Amount['#text']};  `
-                })
-            }
-
-            OtherDetails += `
+                OtherDetails += `
                 <p class="pt-2 text-danger mb-0">`
-            _FareDetail?.Remarks?.Remark.forEach((Remark) => {
-                OtherDetails += `${Remark}</br>`
-            })
-            OtherDetails += `
+                _FareDetail?.Remarks?.Remark.forEach((Remark) => {
+                    OtherDetails += `${Remark}</br>`
+                })
+                OtherDetails += `
                 </p>`
 
-            tabBody += `
-            </div>`
+                tabBody += `
+                </div>`
 
-            OtherDetails += `
-            </div>`
+                OtherDetails += `
+                </div>`
 
-            str += `
-            <tr class="show-farerul" >
-                <td colspan="6" class="accordion-collapse collapse" id="FareRule_${Pax.PaxID}"  data-bs-parent="#PaxList-info" >
-                    <div class="accordion-body"> 
-                        <div class="modal-body">
-                            ${OtherDetails}
-                            ${tabs}
-                            ${tabBody}
+                str += `
+                <tr class="show-farerul" >
+                    <td colspan="6" class="accordion-collapse collapse" id="FareRule_${Pax.PaxID}"  data-bs-parent="#PaxList-info" >
+                        <div class="accordion-body"> 
+                            <div class="modal-body">
+                                ${OtherDetails}
+                                ${tabs}
+                                ${tabBody}
+                            </div>
                         </div>
-                    </div>
-                </td>
-            </tr>`
-        }
+                    </td>
+                </tr>`
+            }
+
+        })
+
 
     })
 
@@ -1610,7 +1623,7 @@ function build_PNRview(x) {
     // parsing OrderStatus-info
     str = ``
     console.log(`Order`, Order.OrderItem)
-    if ( Order.OrderItem?.StatusCode == "NOT ENTITLED") {
+    if (Order.OrderItem?.StatusCode == "NOT ENTITLED") {
         str = `
         <div class="traveller-info-sec" >
             <h4 class="mb-3 mt-3"><i class="mdi mdi-account-multiple-check-outline me-1"></i>Order Item\s</h4>

@@ -7,6 +7,7 @@ const { ObjectId } = require("mongodb");
 const mongodbClient = require('../../../../_helpers/db');
 const Fn = require('../../../../_helpers/functions');
 const { json } = require('express');
+require('dotenv').config()
 
 const SIA_Config = {
 
@@ -66,7 +67,7 @@ module.exports = {
         var created = CryptoJS.enc.Utf8.parse(timestamp);
 
         // Get LSS password from environment variable and hash password
-        var passwordHash = CryptoJS.SHA1(SIA_Config.password);
+        var passwordHash = CryptoJS.SHA1(process.env.SIA_password);
 
         // Generate password digest
         var passwordDigest = CryptoJS.SHA1(nonce.concat(created).concat(passwordHash)).toString(CryptoJS.enc.Base64);
@@ -179,7 +180,7 @@ module.exports = {
                 <!-- * Corporate Code -->
                 <ProgramCriteria>
                     <ProgramAccount>
-                        <AccountID>${SIA_Config.corpCode}</AccountID>
+                        <AccountID>${process.env.SIA_corpCode}</AccountID>
                     </ProgramAccount>
                     <ProgramOwner>
                         <Carrier>
@@ -200,13 +201,13 @@ module.exports = {
                     </PayloadAttributes>
                     <PointOfSale>
                         <Country>
-                            <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                            <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                         </Country>
                     </PointOfSale>
                     <Party>
                         <Recipient>
                             <ORA>
-                                <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                             </ORA>
                         </Recipient>
                         <Participant>
@@ -216,9 +217,9 @@ module.exports = {
                         </Participant>
                         <Sender>
                             <TravelAgency>
-                                <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                                <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                                <Name>${SIA_Config.agencyName}</Name>
+                                <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                                <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                                <Name>${process.env.SIA_agencyName}</Name>
                             </TravelAgency>
                         </Sender>
                     </Party>
@@ -239,7 +240,7 @@ module.exports = {
             redirect: 'follow'
         };
 
-        const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+        const apiResp = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
         //fs.writeFileSync('./respXML.txt', apiResp);
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
         let jObj = JSON.stringify(parser.parse(apiResp));
@@ -248,7 +249,7 @@ module.exports = {
 
         let AirShoppingRQ = {
 
-            agency_id: new ObjectId(req.session.agency['_id']),
+            agency: new ObjectId(req.session.agency['_id']),
             AirShoppingTime: Date.now(),
             AirShoppingRQ: reqBody,
             AirShoppingRS: apiResp,
@@ -260,7 +261,7 @@ module.exports = {
 
         var options = {
             'method': 'POST',
-            'url': SIA_Config.WSAP,
+            'url': process.env.SIA_WSAP,
             'headers': {
                 'SOAPAction': 'http://webservices.amadeus.com/NDC_AirShopping_18.1',
                 'Content-Type': 'text/xml;charset=utf-8'
@@ -339,7 +340,7 @@ module.exports = {
             <PricedOffer>
                 <SelectedOffer>
                     <OfferRefID>${Offer.OfferID}</OfferRefID>
-                    <OwnerCode>${SIA_Config.airline}</OwnerCode>
+                    <OwnerCode>${process.env.SIA_airline}</OwnerCode>
                     <ShoppingResponseRefID>0</ShoppingResponseRefID>
                     ${SelectedOfferItem}
                     <!--
@@ -375,13 +376,13 @@ module.exports = {
                     </PayloadAttributes>
                     <PointOfSale>
                         <Country>
-                            <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                            <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                         </Country>
                     </PointOfSale>
                     <Party>
                         <Recipient>
                             <ORA>
-                                <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                             </ORA>
                         </Recipient>
                         <Participant>
@@ -391,9 +392,9 @@ module.exports = {
                         </Participant>
                         <Sender>
                             <TravelAgency>
-                                <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                                <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                                <Name>${SIA_Config.agencyName}</Name>
+                                <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                                <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                                <Name>${process.env.SIA_agencyName}</Name>
                             </TravelAgency>
                         </Sender>
                     </Party>
@@ -416,7 +417,7 @@ module.exports = {
             redirect: 'follow'
         };
 
-        const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+        const apiResp = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
         //fs.writeFileSync('./respXML.txt', apiResp);
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
         let jObj = JSON.stringify(parser.parse(apiResp));
@@ -547,7 +548,7 @@ module.exports = {
             <CreateOrder>
                 <SelectedOffer>
                     <OfferID>${Offer.OfferID}</OfferID>
-                    <OwnerCode>${SIA_Config.airline}</OwnerCode>
+                    <OwnerCode>${process.env.SIA_airline}</OwnerCode>
                     <ShoppingResponseRefID/>
                     ${SelectedOfferItem}
                 </SelectedOffer>
@@ -568,13 +569,13 @@ module.exports = {
                     </PayloadAttributes>
                     <PointOfSale>
                         <Country>
-                            <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                            <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                         </Country>
                     </PointOfSale>
                     <Party>
                         <Recipient>
                             <ORA>
-                                <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                             </ORA>
                         </Recipient>
                         <Participant>
@@ -584,9 +585,9 @@ module.exports = {
                         </Participant>
                         <Sender>
                             <TravelAgency>
-                                <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                                <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                                <Name>${SIA_Config.agencyName}</Name>
+                                <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                                <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                                <Name>${process.env.SIA_agencyName}</Name>
                             </TravelAgency>
                         </Sender>
                     </Party>
@@ -609,7 +610,7 @@ module.exports = {
             redirect: 'follow'
         };
 
-        const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+        const apiResp = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
         console.log('apiResp', apiResp)
         //fs.writeFileSync('./respXML.txt', apiResp);
         const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true });
@@ -863,13 +864,13 @@ module.exports = {
             const OrderViewRS_OrderID = OrderViewRS_Order?.OrderID
             if (OrderViewRS_OrderID) {
                 var _Request = `
-            <Request>
+            <Request>0
                 <Order>
                     <OrderID>${OrderViewRS_OrderID}</OrderID>
-                    <OwnerCode>${SIA_Config.airline}</OwnerCode>
+                    <OwnerCode>${process.env.SIA_airline}</OwnerCode>
                 </Order>
                 <ExpectedRefundAmount>
-                    <EquivAmount CurCode="ANY">0.00</EquivAmount>
+                    <EquivAmount CurCode="AUD">0.00</EquivAmount>
                 </ExpectedRefundAmount>
             </Request>
         `
@@ -883,13 +884,13 @@ module.exports = {
                             </PayloadAttributes>
                             <PointOfSale>
                                 <Country>
-                                    <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                                    <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                                 </Country>
                             </PointOfSale>
                             <Party>
                                 <Recipient>
                                     <ORA>
-                                        <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                        <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                                     </ORA>
                                 </Recipient>
                                 <Participant>
@@ -899,9 +900,9 @@ module.exports = {
                                 </Participant>
                                 <Sender>
                                     <TravelAgency>
-                                        <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                                        <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                                        <Name>${SIA_Config.agencyName}</Name>
+                                        <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                                        <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                                        <Name>${process.env.SIA_agencyName}</Name>
                                     </TravelAgency>
                                 </Sender>
                             </Party>
@@ -924,7 +925,7 @@ module.exports = {
                     redirect: 'follow'
                 };
 
-                const OC_rs_xml = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+                const OC_rs_xml = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
                 let OC_rs_json = await parser.parse(OC_rs_xml);
                 console.log('OC_rs_json', OC_rs_json)
                 const json_OrderCancelRS = OC_rs_json?.Envelope?.Body?.OrderCancelRS
@@ -1038,13 +1039,13 @@ async function OrderRetrieve(pnr) {
                     </PayloadAttributes>
                     <PointOfSale>
                         <Country>
-                            <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                            <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                         </Country>
                     </PointOfSale>
                     <Party>
                         <Recipient>
                             <ORA>
-                                <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                                <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                             </ORA>
                         </Recipient>
                         <Participant>
@@ -1054,9 +1055,9 @@ async function OrderRetrieve(pnr) {
                         </Participant>
                         <Sender>
                             <TravelAgency>
-                                <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                                <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                                <Name>${SIA_Config.agencyName}</Name>
+                                <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                                <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                                <Name>${process.env.SIA_agencyName}</Name>
                             </TravelAgency>
                         </Sender>
                     </Party>
@@ -1064,7 +1065,7 @@ async function OrderRetrieve(pnr) {
                         <OrderFilterCriteria>
                             <Order>
                                 <OrderID>${pnr}</OrderID>
-                                <OwnerCode>${SIA_Config.airline}</OwnerCode>
+                                <OwnerCode>${process.env.SIA_airline}</OwnerCode>
                             </Order>
                         </OrderFilterCriteria>
                     </Request>
@@ -1086,7 +1087,7 @@ async function OrderRetrieve(pnr) {
         redirect: 'follow'
     };
 
-    const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+    const apiResp = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
 
     return { rq: reqBody, rs: apiResp }
 }
@@ -1102,13 +1103,13 @@ async function OrderChange(_Request) {
                 </PayloadAttributes>
                 <PointOfSale>
                     <Country>
-                        <CountryCode>${SIA_Config.countryCode}</CountryCode>
+                        <CountryCode>${process.env.SIA_countryCode}</CountryCode>
                     </Country>
                 </PointOfSale>
                 <Party>
                     <Recipient>
                         <ORA>
-                            <AirlineDesigCode>${SIA_Config.airline}</AirlineDesigCode>
+                            <AirlineDesigCode>${process.env.SIA_airline}</AirlineDesigCode>
                         </ORA>
                     </Recipient>
                     <Participant>
@@ -1118,9 +1119,9 @@ async function OrderChange(_Request) {
                     </Participant>
                     <Sender>
                         <TravelAgency>
-                            <AgencyID>${SIA_Config.agencyID}</AgencyID>
-                            <IATA_Number>${SIA_Config.iataNumber}</IATA_Number>
-                            <Name>${SIA_Config.agencyName}</Name>
+                            <AgencyID>${process.env.SIA_agencyID}</AgencyID>
+                            <IATA_Number>${process.env.SIA_iataNumber}</IATA_Number>
+                            <Name>${process.env.SIA_agencyName}</Name>
                         </TravelAgency>
                     </Sender>
                 </Party>
@@ -1143,7 +1144,7 @@ async function OrderChange(_Request) {
         redirect: 'follow'
     };
 
-    const apiResp = await fetch(SIA_Config.WSAP, requestOptions).then(r => r.text());
+    const apiResp = await fetch(process.env.SIA_WSAP, requestOptions).then(r => r.text());
     return { OC_rq: reqBody, OC_rs: apiResp }
 }
 
@@ -1157,22 +1158,22 @@ function xml_req_header(_action) {
     var created = CryptoJS.enc.Utf8.parse(timestamp);
 
     // Get LSS password from environment variable and hash password
-    var passwordHash = CryptoJS.SHA1(SIA_Config.password);
+    var passwordHash = CryptoJS.SHA1(process.env.SIA_password);
 
     // Generate password digest
     var passwordDigest = CryptoJS.SHA1(nonce.concat(created).concat(passwordHash)).toString(CryptoJS.enc.Base64);
     return (`
     <soapenv:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
         <sec:AMA_SecurityHostedUser>
-            <sec:UserID POS_Type="1" RequestorType="U" PseudoCityCode="${SIA_Config.OID}" AgentDutyCode="SU">
+            <sec:UserID POS_Type="1" RequestorType="U" PseudoCityCode="${process.env.SIA_OID}" AgentDutyCode="SU">
                 <typ:RequestorID xmlns:typ="http://xml.amadeus.com/2010/06/Types_v1" xmlns:iat="http://www.iata.org/IATA/2007/00/IATA2010.1">
-                    <iat:CompanyName>${SIA_Config.airline}</iat:CompanyName>
+                    <iat:CompanyName>${process.env.SIA_airline}</iat:CompanyName>
                 </typ:RequestorID>
             </sec:UserID>
         </sec:AMA_SecurityHostedUser>
         <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
             <wsse:UsernameToken>
-                <wsse:Username>${SIA_Config.LSSUser}</wsse:Username>
+                <wsse:Username>${process.env.SIA_LSSUser}</wsse:Username>
                 <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${passwordDigest}</wsse:Password>
                 <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${nonceEncoded}</wsse:Nonce>
                 <wsu:Created>${timestamp}</wsu:Created>
@@ -1180,7 +1181,7 @@ function xml_req_header(_action) {
         </wsse:Security>
         <wsa:Action>${_action}</wsa:Action>
         <wsa:MessageID>3aa0046c-f5df-4de3-8df7-7818f598f0d8</wsa:MessageID>
-        <wsa:To>${SIA_Config.WSAP}</wsa:To>
+        <wsa:To>${process.env.SIA_WSAP}</wsa:To>
     </soapenv:Header>
     `);
 }
@@ -1209,7 +1210,7 @@ async function header(password) {
 
     var options = {
         'method': 'POST',
-        'url': SIA_Config.WSAP,
+        'url': process.env.SIA_WSAP,
         'headers': {
             'SOAPAction': 'http://webservices.amadeus.com/NDC_AirShopping_18.1'
         },

@@ -6,10 +6,22 @@ module.exports = {
     index: (req, res, next) => { },
     view: async (req, res, next) => {
         console.log(req.params)
-        const qry = res.query
+        const qry = req.query
 
+        const dates = qry?.dates?.split(" to ") || [];
+        const startDate = new Date(dates[0] || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+        const endDate = new Date(dates[1] || new Date(Date.now() + 1 * 24 * 60 * 60 * 1000));
+        console.log('dates', startDate, endDate, qry)
+        
         const pnrs = await mongodbClient.db('Airlink').collection('pnrs').aggregate(
             [
+                {
+                    $match: {
+
+                        agency: new ObjectId(req.session.agency._id),
+                        createdAt: { $gte: startDate, $lte: endDate }
+                    }
+                },
                 {
                     $lookup: {
                         from: "users",
@@ -44,7 +56,7 @@ module.exports = {
             ],
             { maxTimeMS: 60000, allowDiskUse: true }
         ).toArray();
-        console.log('pnrs', pnrs)
+        
 
         var _content =
             `
@@ -155,8 +167,8 @@ module.exports = {
                                         <tbody>`
 
 
-                                pnrs?.forEach(function (pnr) {
-                                    _content += `
+        pnrs?.forEach(function (pnr) {
+            _content += `
                                             <tr>
                                                 <td>${pnr.provider}</td>
                                                 <td>${pnr.queue}</td>
@@ -167,25 +179,23 @@ module.exports = {
                                                 <td><a href="/65dea3e81d2f7e4eeb111e5e?pnrid=${pnr._id}" type="button" class="btn btn-link btn-sm">View</a></td>
                                             </tr>`
 
-                                })
-                                _content += `
+        })
+        _content += `
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-       <script>
-       $(document).ready(function() {
-         // Initialize DataTable without search
-         $('#pnr-table').DataTable({
-           searching: false
-         });
-       });
-     </script>
-           
-           `
+                <script>
+                    $(document).ready(function() {
+                        // Initialize DataTable without search
+                        $('#pnr-table').DataTable({
+                        searching: false
+                        });
+                    });
+                </script>
+            `
         var html = html_doc(req, res, next, _content)
         res.send(html)
     },

@@ -407,16 +407,11 @@ module.exports = {
 
 
 
-
-
-
 <!-
 ////////////////////////////////////////////////////////////////
 /////////////// TP_components /////////////////////////////////
 //////////////////////////////////////////////////////////////
 -->
-
-
 
 
     <!-- Flight detail popup -->
@@ -429,7 +424,6 @@ module.exports = {
         </div>
     </div>
 
-
     <!-- FARE detail Offcanvas -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="fareDetailOffcanvas" aria-labelledby="offcanvasRightLabel">
         <div class="offcanvas-header pb-0 shadow-lg">
@@ -439,7 +433,6 @@ module.exports = {
         <div class="offcanvas-body p-0">
         </div>
     </div>
-
 
 <script src="/js/search/common.js"></script>
 <script src="/js/search/travelport.js"></script>
