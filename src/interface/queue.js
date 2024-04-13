@@ -20,7 +20,7 @@ module.exports = {
                     $match: {
 
                         agency: new ObjectId(req.session.agency._id),
-                        createdAt: { $gte: startDate, $lte: endDate }
+                        //createdAt: { $gte: startDate, $lte: endDate }
                     }
                 },
                 {

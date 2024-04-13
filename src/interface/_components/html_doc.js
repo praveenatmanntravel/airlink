@@ -95,7 +95,7 @@ module.exports = {
                                     </a>
         
                                     <!-- Logo Dark -->
-                                    <a href="index.html" class="logo-dark">
+                                    <a href="/" class="logo-dark">
                                         <span class="logo-lg">
                                             <img src="/images/logo-dark.png" alt="dark logo">
                                         </span>
