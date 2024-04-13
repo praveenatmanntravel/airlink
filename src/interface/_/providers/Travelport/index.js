@@ -6,6 +6,7 @@ const { ObjectId } = require("mongodb");
 const { sensitiveHeaders } = require('node:http2');
 const { receiveMessageOnPort } = require('node:worker_threads');
 const { ChildProcess } = require('node:child_process');
+require('dotenv').config()
 
 const SIA_Config = {
     baseURL: `api.pp.travelport.com`,
@@ -176,7 +177,7 @@ module.exports = {
 }
 
 const getTPtoken = async (TP_app_token) => {
-    const a = await mongodbClient.db('Airlink').collection('travelport_log').findOne({ _id: new ObjectId(TP_app_token) }, { _id: 0, projection: { 'rsp.access_token': 1 } })
+    const a = await mongodbClient.db(process.env.MONGO_DB_DB).collection('travelport_log').findOne({ _id: new ObjectId(TP_app_token) }, { _id: 0, projection: { 'rsp.access_token': 1 } })
     console.log('a', a)
     return a?.rsp?.access_token
 }
@@ -212,7 +213,7 @@ async function OAuthRequest() {
         req: OAuthReq,
         rsp: OAuthRes
     }
-    const TP_app_token = await mongodbClient.db('Airlink').collection('travelport_log').insertOne(AOuthLog);
+    const TP_app_token = await mongodbClient.db(process.env.MONGO_DB_DB).collection('travelport_log').insertOne(AOuthLog);
     return { TP_app_token: TP_app_token?.insertedId, _OAuth: OAuthRes }
     return apiResp;
 
@@ -237,18 +238,18 @@ async function OAuthRequest() {
         req: OAuthReq,
         rsp: OAuthRes
     }
-    const TP_app_tokenx = await mongodbClient.db('Airlink').collection('travelport_log').insertOne(AOuthLog);
+    const TP_app_tokenx = await mongodbClient.db(process.env.MONGO_DB_DB).collection('travelport_log').insertOne(AOuthLog);
     return { TP_app_token: TP_app_token, OAuthRes: OAuthRes }
 
     if (OAuthRes?.access_token) {
 
-        var _interface = await mongodbClient.db('Airlink').collection('interface').insertOne();
+        var _interface = await mongodbClient.db(process.env.MONGO_DB_DB).collection('interface').insertOne();
 
     }
     await axios.request(config)
         .then(async (response) => {
             console.log(JSON.stringify(response.data));
-            var _interface = await mongodbClient.db('Airlink').collection('interface').insertOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1 });
+            var _interface = await mongodbClient.db(process.env.MONGO_DB_DB).collection('interface').insertOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1 });
 
             _d = JSON.stringify(response.data);
         })

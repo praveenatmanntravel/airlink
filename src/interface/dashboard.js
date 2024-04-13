@@ -1,4 +1,5 @@
 const { html_doc } = require('./_components/html_doc')
+require('dotenv').config()
 
 
 module.exports = {

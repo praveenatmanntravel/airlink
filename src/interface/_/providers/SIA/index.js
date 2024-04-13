@@ -33,7 +33,7 @@ module.exports = {
         const qry = req.query
         const pnr_id = qry.pnr_id
         // retrive pnr form the pnr_id
-        const pnr_details = await mongodbClient.db('Airlink').collection('pnrs').findOne({ '_id': new ObjectId(pnr_id) })
+        const pnr_details = await mongodbClient.db(process.env.MONGO_DB_DB).collection('pnrs').findOne({ '_id': new ObjectId(pnr_id) })
 
 
         const { rq, rs } = await OrderRetrieve(pnr_details.pnr)
@@ -47,7 +47,7 @@ module.exports = {
             rsJson: resStr
         }
 
-        const result = mongodbClient.db('Airlink').collection('pnrs').updateOne({ _id: new ObjectId(pnr_id) }, { $set: { OrderRetrieve: OrderRetrieve_aa } });
+        const result = mongodbClient.db(process.env.MONGO_DB_DB).collection('pnrs').updateOne({ _id: new ObjectId(pnr_id) }, { $set: { OrderRetrieve: OrderRetrieve_aa } });
 
 
         return { provider: 'ndcSIA', pnr_id: pnr_id, apiResp: resStr }
@@ -255,7 +255,7 @@ module.exports = {
             AirShoppingRS: apiResp,
             AirShoppingRSjson: jObj
         }
-        const sia_resp_id = await mongodbClient.db('Airlink').collection('sia_log').insertOne(AirShoppingRQ);
+        const sia_resp_id = await mongodbClient.db(process.env.MONGO_DB_DB).collection('sia_log').insertOne(AirShoppingRQ);
 
         return { provider: 'ndcSIA', sia_resp_id: sia_resp_id.insertedId, apiResp: jObj }
 
@@ -648,7 +648,7 @@ module.exports = {
                 OR_json: OR_json
             }
 
-            var pnrs = await mongodbClient.db('Airlink').collection('pnrs').insertOne(pnrObj)
+            var pnrs = await mongodbClient.db(process.env.MONGO_DB_DB).collection('pnrs').insertOne(pnrObj)
 
             await updateLog(sia_resp_id, {
                 $push: {
@@ -784,7 +784,7 @@ module.exports = {
                     console.log('OR_rq, OR_rs', OR_rq, OR_rs)
                     const OR_rs_json = await parser.parse(OR_rs)
 
-                    await mongodbClient.db('Airlink').collection('pnrs').updateOne(
+                    await mongodbClient.db(process.env.MONGO_DB_DB).collection('pnrs').updateOne(
                         { _id: req.pnrdetails?._id },
                         {
                             $set: { OR_json: OR_rs_json },
@@ -959,7 +959,7 @@ module.exports = {
                     console.log('OR_rq, OR_rs', OR_rq, OR_rs)
                     const OR_rs_json = await parser.parse(OR_rs)
 
-                    await mongodbClient.db('Airlink').collection('pnrs').updateOne(
+                    await mongodbClient.db(process.env.MONGO_DB_DB).collection('pnrs').updateOne(
                         { _id: req.pnrdetails?._id },
                         { $set: { queue: 'Refunded' }, },
                         { upsert: true }
@@ -1012,7 +1012,7 @@ module.exports = {
 
 async function getLog(sia_resp_id, name) {
     try {
-        const a = await mongodbClient.db('Airlink').collection('sia_log').findOne({ _id: new ObjectId(sia_resp_id) }, { [name]: 1 })
+        const a = await mongodbClient.db(process.env.MONGO_DB_DB).collection('sia_log').findOne({ _id: new ObjectId(sia_resp_id) }, { [name]: 1 })
         console.log('aaaaaaaaaaaaa', a)
         return JSON.parse(a?.[name] || {})
     } catch (e) {
@@ -1021,7 +1021,7 @@ async function getLog(sia_resp_id, name) {
 }
 
 async function updateLog(sia_resp_id, log_qry) {
-    const result = await mongodbClient.db('Airlink').collection('sia_log').updateOne({ _id: new ObjectId(sia_resp_id) }, log_qry, { upsert: true });
+    const result = await mongodbClient.db(process.env.MONGO_DB_DB).collection('sia_log').updateOne({ _id: new ObjectId(sia_resp_id) }, log_qry, { upsert: true });
     return true
 }
 async function createLog() {

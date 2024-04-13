@@ -4,6 +4,7 @@ const {load_interface} = require('../_helpers/load_interface')
 const mongodbClient = require('../_helpers/db');
 const { ObjectId } = require("mongodb");
 const { index } = require("./dashboard");
+require('dotenv').config()
 
 
 var router = express.Router();
@@ -31,7 +32,7 @@ router.all('/:interface/:fun', [load_interface], function (req, res, next) {
 
 router.get('/myaccounts', async function (req, res, next) {
     //   console.log(req.session.auth)
-    //   var _agent = await mongodbClient.db('Airlink').collection('agent').findOne({ _id: (req.session.auth._id) });
+    //   var _agent = await mongodbClient.db(process.env.MONGO_DB_DB).collection('agent').findOne({ _id: (req.session.auth._id) });
     //   console.log('_agent', _agent)
     //   if (_agent != null) {
 

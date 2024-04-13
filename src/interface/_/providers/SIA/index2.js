@@ -2,6 +2,7 @@ var request = require('request');
 var CryptoJS = require("crypto-js");
 var xml2json = require('xml2json');
 const { default: axios } = require('axios');
+require('dotenv').config()
 
 const SIA_Config = {
     WSAP: `https://nodeA3.test.webservices.amadeus.com/1ASIWCLTSQ`,

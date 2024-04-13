@@ -1,6 +1,7 @@
 //const head = require('./head')
 //const header = require('./header')
 const { footer } = require('./footer')
+require('dotenv').config()
 
 module.exports = {
 
