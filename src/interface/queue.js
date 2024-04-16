@@ -1,6 +1,7 @@
 const { html_doc } = require('./_components/html_doc')
 const { ObjectId } = require("mongodb");
 const mongodbClient = require('../_helpers/db');
+require('dotenv').config()
 
 module.exports = {
     index: (req, res, next) => { },
@@ -13,13 +14,13 @@ module.exports = {
         const endDate = new Date(dates[1] || new Date(Date.now() + 1 * 24 * 60 * 60 * 1000));
         console.log('dates', startDate, endDate, qry)
         
-        const pnrs = await mongodbClient.db('Airlink').collection('pnrs').aggregate(
+        const pnrs = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').aggregate(
             [
                 {
                     $match: {
 
                         agency: new ObjectId(req.session.agency._id),
-                        createdAt: { $gte: startDate, $lte: endDate }
+                       /* createdAt: { $gte: startDate, $lte: endDate } */
                     }
                 },
                 {

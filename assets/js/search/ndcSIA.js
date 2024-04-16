@@ -74,16 +74,18 @@ function sia_parse_to_flight_display(d) {
 
     //console.log(d)
     d = JSON.parse(d)
+    // cheacking for errors or inv
+
     //console.log(d)
     const Response = d?.['Envelope']?.['Body']?.['AirShoppingRS']?.['Response']
     console.log('Response', Response)
 
-    sia_parseDataList(Response?.['DataLists'])
-    parseFilter()
     ShoppingResponseID = Response?.ShoppingResponse?.ShoppingResponseID
 
     if (Response?.OffersGroup?.CarrierOffers?.Offer.length > 0) {
-
+        
+        sia_parseDataList(Response?.['DataLists'])
+        parseFilter()
 
         Response?.OffersGroup?.CarrierOffers?.Offer?.forEach((o) => {
 
@@ -213,11 +215,16 @@ function sia_parse_to_flight_display(d) {
                     `)
             })
         }
-    } else {
-
+        return true
+    } else if(d?.['Envelope']?.['Body']?.['AirShoppingRS']?.['Error']?.["DescText"]) {
+        alert(d?.['Envelope']?.['Body']?.['AirShoppingRS']?.['Error']?.["DescText"])
+        return false
+    }else{
+        alert('Something went wrong, please try again!')
+        return false
     }
 
-    console.log('DataLists', DataLists)
+    
 }
 
 function sia_build_price_tooltip() {
@@ -515,7 +522,7 @@ function sia_buildFareDetails(OfferID) {
         `
 
 
-        convert2Array(FF.Desc).forEach((_) => {
+        convert2Array(FF?.Desc).forEach((_) => {
             str += `<tr><th>${_.DescID}</th><td>${_.hasOwnProperty("DescText") ? _.DescText : ``}</td></tr>`
         })
         str += `</table>`
@@ -626,9 +633,14 @@ $(document).ready(function () {
         $.ajax({
             data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
         }).done(function (data) {
-            data = data;
+            console.log('PnrCreateResp', data)
+            if (data.hasOwnProperty('message')) {
+                alert(data.message)
+            }
+            if (data.hasOwnProperty('pnrid')) {
+                window.location.href = `65dea3e81d2f7e4eeb111e5e/?pnrid=${data.pnrid}&pnrCreated=1`
+            }
 
-            console.log(data)
 
         })
             .fail(function (e) {
@@ -741,7 +753,7 @@ function sia_parseDataList(_dList) {
         } else {
             DataLists[_dList?.['ServiceDefinitionList']?.['ServiceDefinition']?.['ServiceDefinitionID']] = _dList?.['ServiceDefinitionList']?.['ServiceDefinition']
         }
-*/
+        */
     }
     console.log('DataLists', DataLists)
 }
@@ -1347,9 +1359,9 @@ function build_PNRview(x) {
         $.each(OrderItems, (n, OrderItem) => {
 
             var FareDetail = convert2Array(OrderItem?.FareDetail)
-            
+
             const [_FareDetail] = FareDetail.filter((e) => e.PassengerRefs == Pax.PaxID)
-            
+
             console.log('_FareDetail ++++++++++++++++', _FareDetail)
 
             //parsing price
@@ -1418,24 +1430,24 @@ function build_PNRview(x) {
                         tabBody += rmk.trim() != '' ? `<dt class="col-sm-3 border-bottom py-2">Penalty Amount </dt>
                             <dd class="col-sm-9 border-bottom py-2 mb-0">${rmk}</dd>` : ``
 
-                            /*
-                            Penalty?.Details?.Detail.forEach((Detail) => {
-                                tabBody += `
-                                <dt class="col-sm-3 border-bottom py-2">Penalty ${Detail.Type}</dt>
-                                <dd class="col-sm-9 border-bottom py-2 mb-0">`
-                                var rmk = ''
-                                Detail.Amounts?.Amount?.forEach((Amount) => {
-                                    if (parseFloat(Amount.CurrencyAmountValue['#text']) > 0) {
-                                        rmk = `<p class="text-primary" ><b>${Detail.Type}</b> - ${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` + rmk
-                                    } else {
-                                        rmk += `<p><b>${Amount.AmountApplication}</b> ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>`
-                                    }
-                                })
-                                tabBody += `
-                                    ${rmk}
-                                </dd>`
-                            })/crm/agent/1.0
-                            */
+                        /*
+                        Penalty?.Details?.Detail.forEach((Detail) => {
+                            tabBody += `
+                            <dt class="col-sm-3 border-bottom py-2">Penalty ${Detail.Type}</dt>
+                            <dd class="col-sm-9 border-bottom py-2 mb-0">`
+                            var rmk = ''
+                            Detail.Amounts?.Amount?.forEach((Amount) => {
+                                if (parseFloat(Amount.CurrencyAmountValue['#text']) > 0) {
+                                    rmk = `<p class="text-primary" ><b>${Detail.Type}</b> - ${Amount.AmountApplication} - ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>` + rmk
+                                } else {
+                                    rmk += `<p><b>${Amount.AmountApplication}</b> ${Amount.CurrencyAmountValue['#text']} ${Amount.CurrencyAmountValue['@_Code']} - ${Amount?.ApplicableFeeRemarks?.Remark}</p>`
+                                }
+                            })
+                            tabBody += `
+                                ${rmk}
+                            </dd>`
+                        })/crm/agent/1.0
+                        */
                         _Service?.forEach((Service) => {
                             tabBody += `
                             <dt class="col-sm-3 border-bottom py-2">Service</dt>

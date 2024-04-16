@@ -8,7 +8,7 @@ var router = express.Router();
 /* GET home page. */
 router.get('/', async function (req, res, next) {
 
-  var _agents = await mongodbClient.db('Airlink').collection('agency').find({}).toArray();
+  var _agents = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('agency').find({}).toArray();
   var _agentsOption = '';
   _agents.forEach((x, i) => {
     _agentsOption += `<option value="${x._id}">${x.name}</option>`;
@@ -81,7 +81,7 @@ router.post('/', async function (req, res, next) {
   const { email, agent, password } = post;
   console.log('email', email, 'password', password)
   if (validator.isEmail(email) && /*ObjectId.isValid(agent), */ password.length > 2 && password.length < 10) {
-    const _user = await mongodbClient.db('Airlink').collection('users').findOne({ email: email, password: password });
+    const _user = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('users').findOne({ email: email, password: password });
     console.log('_user', _user)
     if (_user != null) {
       req.session.auth = _user;

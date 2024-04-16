@@ -1,6 +1,7 @@
 const { html_doc } = require('./_components/html_doc')
 const { ObjectId } = require("mongodb");
 const mongodbClient = require('../_helpers/db');
+require('dotenv').config()
 
 module.exports = {
     index: (req, res, next) => { },
@@ -136,19 +137,19 @@ module.exports = {
     },
     dataForPnrView: async (req, res, next) => {
         const pnrid = req.body?.pnrid
-        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        const pnrdetails = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         console.log('pnrdetails', pnrdetails)
         return res.json({ 'pnrdetails': pnrdetails, provider: 'ndcSIA', 'access': req.access });
     },
     PnrActivityLog: async (req, res, next) => {
         const pnrid = req.body?.pnrid
-        const activityLogs = await mongodbClient.db('Airlink').collection('activity_log').find({ pnr_id: new ObjectId(pnrid) }).toArray()
+        const activityLogs = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('activity_log').find({ pnr_id: new ObjectId(pnrid) }).toArray()
         console.log('activityLogs', activityLogs)
         return res.json(activityLogs);
     },
     Issuance: async (req, res, next) => {
         const pnrid = req.body?.pnrid
-        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        const pnrdetails = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         req.pnrdetails = pnrdetails
         var tp_res
         if (pnrdetails?.provider == 'ndcSIA') {
@@ -164,7 +165,7 @@ module.exports = {
     },
     CancelPnr: async (req, res, next) => {
         const pnrid = req.body?.pnrid
-        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        const pnrdetails = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         req.pnrdetails = pnrdetails
         var tp_res
         if (pnrdetails?.provider == 'ndcSIA') {
@@ -181,7 +182,7 @@ module.exports = {
     action: async (req, res, next) => {
 
         const pnrid = req.body?.pnrid
-        const pnrdetails = await mongodbClient.db('Airlink').collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
+        const pnrdetails = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').findOne({ _id: new ObjectId(pnrid) })
         req.pnrdetails = pnrdetails
         var tp_res
         if (pnrdetails?.provider == 'ndcSIA') {

@@ -161,17 +161,19 @@ $(document).ready(function () {
         $.ajax({
             data: search_form_params, type: "POST", url: form_action, dataType: "json", encode: true,
         }).done(function (data) {
-            data = data;
-
+            
+            var indicator_search_panel_min = true
             if (data.provider == 'travelport') {
                 TP_app_token = data.TP_app_token;
-                tp_parse_to_flight_display(data.apiResp)
+                indicator_search_panel_min = tp_parse_to_flight_display(data.apiResp)
             } else if (data.provider == 'ndcSIA') {
                 sia_resp_id = data.sia_resp_id
-                sia_parse_to_flight_display(data.apiResp)
+                indicator_search_panel_min = sia_parse_to_flight_display(data.apiResp)
             }
 
-            console.log(data)
+            indicator_search_panel_min && search_panel('min')
+
+            console.log('searchFlight', data)
 
             // var _Offers = data?.['soap:Envelope']?.['soap:Body']?.['AirShoppingRS']?.['Response']?.['OffersGroup']?.['CarrierOffers']?.['Offer']
             // var _segs = data?.['soap:Envelope']?.['soap:Body']?.['AirShoppingRS']?.['Response']?.['AirShoppingProcessing']?.['MarketingMessages']?.['MarketMessage']?.['Associations']?.['OfferAssociations']?.['Flight']?.['FlightSegmentReference']
@@ -212,7 +214,7 @@ $(document).ready(function () {
             })
             .always(function () {
                 event.target.classList.remove('processing')
-                search_panel('min')
+                
                 //const myModalAlternative = new bootstrap.Modal(document.getElementById('confirmation'), { keyboard: false, backdrop: true })
                 //$('#confirmation').modal('show');
             });
@@ -467,11 +469,10 @@ $("body").on('submit', '#fetch_action_log', function (event) {
                     <div class="timeline-item-info">
                         <h5 class="mt-0 mb-1">${rmk.heading}</h5>
                         <p class="font-14">By: Isha Gupta <span class="ms-2 font-12"><br>Date: ${new Date(rmk.activityAt)}</span></p>
-                        <b class="mt-2">${rmk.heading}</b>
                         ${rmk?.body || ``}
                     </div>
                 </div>
-            `
+                `
             })
         }
         $("#activity_log").html(s)
@@ -504,9 +505,15 @@ $("#create-pnr-form").submit(function (event) {
 
     $.ajax({
         data: fData, type: "POST", url: form_action, dataType: "json", encode: true,
-    }).done(function (d) {
-        console.log('PnrCreateResp', d)
-        window.location.href = `65dea3e81d2f7e4eeb111e5e/?pnrid=${d.pnrid}&pnrCreated=1`
+    }).done(function (data) {
+        console.log('PnrCreateResp', data)
+        if (data.hasOwnProperty('message')) {
+            alert(data.message)
+        }
+        if (data.hasOwnProperty('pnrid')) {
+            window.location.href = `65dea3e81d2f7e4eeb111e5e/?pnrid=${data.pnrid}&pnrCreated=1`
+        }
+        
     })
         .fail(function (e) {
             console.log('error', e)

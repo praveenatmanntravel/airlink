@@ -1,5 +1,6 @@
 const { ObjectId } = require("mongodb");
 const mongodbClient = require('./db');
+require('dotenv').config()
 
 module.exports = {
 
@@ -15,6 +16,6 @@ module.exports = {
         return r
     },
     ActivityLog_insert: async (log) => {
-        await mongodbClient.db('Airlink').collection('activity_log').insertOne(log)
+        await mongodbClient.db(process.env.MONGO_DB_NAME).collection('activity_log').insertOne(log)
     }
 }

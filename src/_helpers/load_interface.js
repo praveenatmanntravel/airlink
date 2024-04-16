@@ -2,6 +2,7 @@ const { ObjectId } = require("mongodb");
 const mongodbClient = require('./db');
 const path = require('path');
 const { html_doc } = require('../interface/_components/html_doc')
+require('dotenv').config()
 
 module.exports = {
     load_interface: async (req, res, next) => {
@@ -9,12 +10,12 @@ module.exports = {
         var processing = { status: 'ok' };
         if (req?.params?.interface) {
             try {
-                var _interface = await mongodbClient.db('Airlink').collection('interface').findOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1, access_labels: 1 });
+                var _interface = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('interface').findOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1, access_labels: 1 });
                 console.log('_interface >> ', _interface)
                 if (_interface != null) {
 
                     // Loading user access access 
-                    const access = await mongodbClient.db('Airlink').collection('user_access').findOne({ interface_id: new ObjectId(_interface._id), user_id: new ObjectId(req.session.auth._id) })
+                    const access = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('user_access').findOne({ interface_id: new ObjectId(_interface._id), user_id: new ObjectId(req.session.auth._id) })
                     req.access = access?.access || []
                     console.log("req.access", req.access)
                     

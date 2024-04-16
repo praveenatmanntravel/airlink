@@ -1,6 +1,7 @@
 var express = require('express');
 const mongodbClient = require('../_helpers/db');
 const { ObjectId } = require("mongodb");
+require('dotenv').config()
 
 
 var router = express.Router();
@@ -24,7 +25,7 @@ router.post('/', async function (req, res, next) {
     var _d = {}
     if (req.apiAuth?.auth) {
 
-        const pnr_details = await mongodbClient.db('Airlink').collection('pnrs').findOne(
+        const pnr_details = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('pnrs').findOne(
             { agency: new ObjectId(req.apiAuth?.agency), pnr: req.apiAuth?.pnr }, 
             {projection:{ _id: 0, "provider": 1, "pnr": 1, "OR_json.Envelope.Body": 1 }}
         )
