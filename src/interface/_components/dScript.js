@@ -7,7 +7,7 @@ module.exports = {
         var s = {}
 
         // fetch users
-        const users = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('users').find({ agency: new ObjectId(req.session.agency._id) }, { email: 1, name: 1 }).toArray();
+        const users = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('users').find({ agency: new ObjectId(req.session.agency._id) }, { projection:{ email: 1, name: 1} }).toArray();
         s.users = users
         return JSON.stringify(s)
     },
