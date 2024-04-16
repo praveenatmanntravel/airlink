@@ -9,7 +9,9 @@ module.exports = {
         //console.log(req.query)
         var processing = { status: 'ok' };
         if (req?.params?.interface) {
-            try {
+            try {  
+
+                
                 var _interface = await mongodbClient.db(process.env.MONGO_DB_NAME).collection('interface').findOne({ '_id': new ObjectId(req?.params?.interface) }, { path: 1, static_var: 1, default_fun: 1, access_labels: 1 });
                 console.log('_interface >> ', _interface)
                 if (_interface != null) {
