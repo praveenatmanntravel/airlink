@@ -22,6 +22,15 @@ router.get('/', function (req, res, next) {
     `)
 });
 
+router.get('/dScript', async function (req, res, next) {
+    const dScript = require('./_components/dScript')
+    
+    const dynamicScript = await dScript.run(req, res, next);
+
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send(dynamicScript);
+});
+
 router.all('/:interface', [load_interface], function (req, res, next) {
     res.send('something unexpected, please try again or call for suport')
 });

@@ -20,7 +20,7 @@ module.exports = {
                     $match: {
 
                         agency: new ObjectId(req.session.agency._id),
-                       /* createdAt: { $gte: startDate, $lte: endDate } */
+                        createdAt: { $gte: startDate, $lte: endDate }
                     }
                 },
                 {
@@ -109,8 +109,8 @@ module.exports = {
                                             </div>
                                             <div class="col-lg-2">
                                                 <div class="form-floating">
-                                                    <input type="text" class="form-control pnrdaterange" name="dates" id="pnr-date-range"  data-toggle="date-picker">
-                                                    <label for="pnr-date-range">Select Date Range</span></label>
+                                                    <input type="text" class="form-control pnrdaterange" name="dates" id="pnr-date-range"  data-toggle="date-picker" value1="${startDate.getFullYear()}-${(startDate.getMonth() + 1).toString().padStart(2, '0')}-${startDate.getDate().toString().padStart(2, '0')} to ${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')} " >
+                                                    <label for="pnr-date-range">Select Date Range</span> ${startDate.toDateString()}</label>
                                                 </div>
                                             </div>
                                             <div class="col-lg-1 d-none">

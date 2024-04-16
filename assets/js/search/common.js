@@ -511,7 +511,7 @@ $("#create-pnr-form").submit(function (event) {
             alert(data.message)
         }
         if (data.hasOwnProperty('pnrid')) {
-            window.location.href = `65dea3e81d2f7e4eeb111e5e/?pnrid=${data.pnrid}&pnrCreated=1`
+            window.location.href = `/65dea3e81d2f7e4eeb111e5e/?pnrid=${data.pnrid}&pnrCreated=1`
         }
         
     })

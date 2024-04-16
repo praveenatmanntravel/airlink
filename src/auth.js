@@ -78,7 +78,7 @@ router.get('/', async function (req, res, next) {
                   <!-- Logo -->
                   <div class="card-header py-3 text-center bg-primary ">
                       <a href="#">
-                          <span><img src="/images/logo.png" class="rounded" alt="logo" height="45"></span>
+                          <span><img src="/images/logo/${process.env.LOGO}.png" class="rounded" alt="logo" height="45"></span>
                       </a>
                   </div>
                   

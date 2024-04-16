@@ -1,6 +1,7 @@
 //const head = require('./head')
 //const header = require('./header')
 const { footer } = require('./footer')
+require('dotenv').config()
 
 module.exports = {
 
@@ -25,7 +26,7 @@ module.exports = {
         <html lang="en" >
             <head>
                 <meta charset="utf-8" />
-                <title>Dashboard | Airlink Services Group</title>
+                <title> EasyTicket | ${process.env.ORGANIZATION}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <meta content="Transform your travel consolidation with our efficient platform. As a reliable consolidator, access exclusive deals, streamline operations, and boost profitability. Elevate your business with our innovative tools, connecting you to a world of travel opportunities." name="description" />
                 <meta content="Airlink Services Group" name="author" />
@@ -86,20 +87,20 @@ module.exports = {
                                     <!-- Logo light -->
                                     <a href="index.html" class="logo-light">
                                         <span class="logo-lg">
-                                            <img src="/images/logo.png" alt="logo">
+                                            <img src="/images/logo/${process.env.LOGO}.png" alt="logo">
                                         </span>
                                         <span class="logo-sm">
-                                            <img src="/images/logo-sm.png" alt="small logo">
+                                            <img src="/images/logo/${process.env.LOGO}-sm.png" alt="small logo">
                                         </span>
                                     </a>
         
                                     <!-- Logo Dark -->
                                     <a href="index.html" class="logo-dark">
                                         <span class="logo-lg">
-                                            <img src="/images/logo-dark.png" alt="dark logo">
+                                            <img src="/images/logo/${process.env.LOGO}.png" alt="logo">
                                         </span>
                                         <span class="logo-sm">
-                                            <img src="/images/logo-dark-sm.png" alt="small logo">
+                                            <img src="/images/logo/${process.env.LOGO}-sm.png" alt="small logo">
                                         </span>
                                     </a>
                                 </div>
@@ -160,8 +161,8 @@ module.exports = {
                                             <img src="/images/users/avatar-1.jpg" alt="user-image" width="32" class="rounded-circle">
                                         </span>
                                         <span class="d-lg-flex flex-column gap-1 d-none">
-                                            <h5 class="my-0">Dominic Keller</h5>
-                                            <h6 class="my-0 fw-normal">Founder</h6>
+                                            <h5 class="my-0">${req.session.auth.name}</h5>
+                                            <h6 class="my-0 fw-normal"></h6>
                                         </span>
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
@@ -206,20 +207,20 @@ module.exports = {
                         <!-- Brand Logo Light -->
                         <a href="index.html" class="logo logo-light">
                             <span class="logo-lg">
-                                <img src="/images/logo.png" alt="logo">
+                                <img src="/images/logo/${process.env.LOGO}.png" alt="logo">
                             </span>
                             <span class="logo-sm">
-                                <img src="/images/logo-sm.png" alt="small logo">
+                                <img src="/images/logo/${process.env.LOGO}-sm.png" alt="small logo">
                             </span>
                         </a>
         
                         <!-- Brand Logo Dark -->
                         <a href="index.html" class="logo logo-dark">
                             <span class="logo-lg">
-                                <img src="/images/logo-dark.png" alt="dark logo">
+                                <img src="/images/logo/${process.env.LOGO}.png" alt="logo">
                             </span>
                             <span class="logo-sm">
-                                <img src="/images/logo-dark-sm.png" alt="small logo">
+                                <img src="/images/logo/${process.env.LOGO}-sm.png" alt="small logo">
                             </span>
                         </a>
         
